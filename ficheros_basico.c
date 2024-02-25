@@ -42,7 +42,6 @@ int initMB()
 
 int initAI()
 { // Array Inodos
-
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
     unsigned int contInodos = SB.posPrimerInodoLibre + 1;
     int i, j;
