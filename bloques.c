@@ -1,5 +1,7 @@
 #include "bloques.h"
 
+// revisar si es perror o frpintf
+
 // Variable global estática para el descriptor del fichero
 static int descriptor = 0;
 
