@@ -42,4 +42,25 @@ int initMB()
 
 int initAI()
 { // Array Inodos
+
+    struct inodo inodos[BLOCKSIZE / INODOSIZE];
+    unsigned int contInodos = SB.posPrimerInodoLibre + 1;
+    int i, j;
+
+    for (i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++) { // Para cada bloque del array de inodos
+
+        // Inicializar cada inodo del bloque
+        for (j = 0; j < BLOCKSIZE / INODOSIZE; j++) { // Para cada inodo del bloque
+            inodos[j].tipo = 'l';
+
+            if (contInodos < SB.totInodos) { // Si no hemos llegado al último inodo del array de inodos
+                inodos[j].punterosDirectos[0] = contInodos; // Enlazamos con el siguiente inodo libre
+                contInodos++;
+            } else { // Hemos llegado al último inodo
+                inodos[j].punterosDirectos[0] = UINT_MAX;
+                break;
+            }
+        }
+    }
+    return 0;
 }
