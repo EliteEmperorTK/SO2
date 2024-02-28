@@ -32,6 +32,7 @@ int tamAI(unsigned int ninodos)
     }
 }
 
+// Inicializa los datos del superbloque.
 int initSB(unsigned int nbloques, unsigned int ninodos)
 { // Superbloques
     struct superbloque SB;
@@ -50,18 +51,37 @@ int initSB(unsigned int nbloques, unsigned int ninodos)
     // reservar inodo-->--, liberar inodo-->++;
     SB.totBloques = nbloques;
     SB.totInodos = ninodos; // ninodos=nbloques/4;
-    bwrite(posSB, &SB);
+
+    // bwrite(posSB, &SB);
+
+    // Escribir la estructura en el bloque posSB
+    if (bwrite(posSB, &SB) == FALLO)
+    {
+        fprintf(stderr, "Error al escribir el superbloque en el disco.\n");
+        return FALLO;
+    }
+
+    return EXITO;
 }
 
+// Inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos.
 int initMB()
 { // Mapa de bits
     struct superbloque SB;
-    bread(posSB, &SB);
+    // initSB();
+
+    if (bread(posSB, &SB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el superbloque en el disco.\n");
+        return FALLO;
+    }
+
     int posBloqueMB = SB.posPrimerBloqueMB;
     int nBloquesMD = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
-    int nBloquesOcupan = nBloquesMD / 8 / BLOCKSIZE;
+    int nBloquesOcupan = nBloquesMD / 8 / BLOCKSIZE; // o int nBloquesOcupan = nBloquesMD / BLOCKSIZE;
     unsigned char bufferMB[BLOCKSIZE];
-    while (nBloquesOcupan != 0)
+    //// Marcar como ocupados los bloques que ocupan los metadatos
+    while (nBloquesOcupan > 0)
     {
         memset(bufferMB, 255, sizeof(bufferMB));
         nBloquesOcupan--;
@@ -69,6 +89,7 @@ int initMB()
         bwrite(posBloqueMB, bufferMB);
         posBloqueMB++;
     }
+
     int i;
     for (i = 0; i <= (nBloquesMD / 8) - 1; i++)
     {
@@ -106,11 +127,32 @@ int initMB()
     {
         bufferMB[j] = 0;
     }
-    bwrite(posBloqueMB, bufferMB);
+    // Escribir el último bloque del mapa de bits
+    if (bwrite(posBloqueMB, bufferMB) == FALLO)
+    {
+        fprintf(stderr, "Error al escribir el último bloque del mapa de bits en el disco.\n");
+        return FALLO;
+    }
+
+    // Actualizar el superbloque
+    if (bwrite(posSB, &SB) == FALLO)
+    {
+        fprintf(stderr, "Error al actualizar el superbloque en el disco.\n");
+        return FALLO;
+    }
+
+    return EXITO;
 }
 
 int initAI()
 { // Array Inodos
+    struct superbloque SB;
+    if (bread(posSB, &SB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el superbloque en el disco.\n");
+        return FALLO;
+    }
+
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
     unsigned int contInodos = SB.posPrimerInodoLibre + 1;
     int i, j;
@@ -120,8 +162,8 @@ int initAI()
 
         // Inicializar cada inodo del bloque
         for (j = 0; j < BLOCKSIZE / INODOSIZE; j++)
-        { // Para cada inodo del bloque
-            inodos[j].tipo = 'l';
+        {                         // Para cada inodo del bloque
+            inodos[j].tipo = 'l'; // libre
 
             if (contInodos < SB.totInodos)
             {                                               // Si no hemos llegado al último inodo del array de inodos
@@ -134,6 +176,41 @@ int initAI()
                 break;
             }
         }
+        // Escribir el bloque de inodos en el dispositivo virtual
+        if (bwrite(i, inodos) == FALLO)
+        {
+            fprintf(stderr, "Error al leer el superbloque en el disco.\n");
+            return FALLO;
+        }
     }
-    return 0;
+    return EXITO;
 }
+
+/*
+int escribir_bit(unsigned int nbloque, unsigned int bit)
+{
+}
+
+char leer_bit(unsigned int nbloque)
+{
+}
+
+int reservar_bloque()
+{
+}
+
+int liberar_bloque(unsigned int nbloque)
+{
+}
+
+int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
+{
+}
+
+int leer_inodo(unsigned int ninodo, struct inodo *inodo)
+{
+}
+
+int reservar_inodo(unsigned char tipo, unsigned char permisos)
+{
+}*/

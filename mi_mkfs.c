@@ -18,6 +18,31 @@ int main(int argc, char **argv)
         exit(FALLO);
     }
 
+    // Inicializar superbloque
+    if (initSB(nbloques, nbloques / 4) == FALLO)
+    {
+        fprintf(stderr, "Error al inicializar el superbloque.\n");
+        bumount();
+        exit(FALLO);
+    }
+
+    // Inicializar mapa de bits
+    if (initMB() == FALLO)
+    {
+        fprintf(stderr, "Error al inicializar el mapa de bits.\n");
+        bumount();
+        exit(FALLO);
+    }
+
+    // Inicializar array de inodos
+    if (initAI() == FALLO)
+    {
+        fprintf(stderr, "Error al inicializar el array de inodos.\n");
+        bumount();
+        exit(FALLO);
+    }
+
+    /*
     unsigned char buffer[BLOCKSIZE];
     memset(buffer, 0, BLOCKSIZE); // Inicializar el buffer a 0s
 
@@ -30,6 +55,7 @@ int main(int argc, char **argv)
             exit(FALLO);
         }
     }
+    */
 
     if (bumount() == FALLO)
     {
