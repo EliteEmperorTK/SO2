@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
     // Leer el superbloque
     struct superbloque SB;
-    if (bread(0, &SB) == FALLO)
+    if (bread(posSB, &SB) == FALLO)
     {
         fprintf(stderr, "Error al leer el superbloque.\n");
         bumount();
@@ -42,16 +42,16 @@ int main(int argc, char **argv)
     printf("totInodos = %d\n", SB.totInodos);
     printf("\n");
 
-    // Mostrar el tamaño de struct inodo
+    // Mostrar el tamaño de los struct
+    printf("sizeof struct superbloque: %lu\n", sizeof(struct superbloque));
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
     printf("\n");
 
     // Recorrer la lista enlazada de inodos libres
     printf("RECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
     int posInodoLibre = SB.posPrimerInodoLibre;
-    /*
 
-    while (posInodoLibre != 0) //-1
+    while (posInodoLibre != -1)
     {
         printf("%d ", posInodoLibre);
         struct inodo i;
@@ -64,7 +64,6 @@ int main(int argc, char **argv)
         posInodoLibre = i.punterosDirectos[0];
     }
     printf("\n");
-    */
 
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)

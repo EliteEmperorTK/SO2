@@ -18,6 +18,20 @@ int main(int argc, char **argv)
         exit(FALLO);
     }
 
+    // inicializar a 0 el fichero utilizado como dispositivo virtual
+    unsigned char buffer[BLOCKSIZE];
+    memset(buffer, 0, BLOCKSIZE); // Inicializar el buffer a 0s
+
+    for (unsigned int i = 0; i < nbloques; i++)
+    {
+        if (bwrite(i, buffer) == FALLO)
+        {
+            fprintf(stderr, "Error al escribir en el bloque %u.\n", i);
+            bumount();
+            exit(FALLO);
+        }
+    }
+
     // Inicializar superbloque
     if (initSB(nbloques, nbloques / 4) == FALLO)
     {
@@ -41,21 +55,6 @@ int main(int argc, char **argv)
         bumount();
         exit(FALLO);
     }
-
-    /*
-    unsigned char buffer[BLOCKSIZE];
-    memset(buffer, 0, BLOCKSIZE); // Inicializar el buffer a 0s
-
-    for (unsigned int i = 0; i < nbloques; i++)
-    {
-        if (bwrite(i, buffer) == FALLO)
-        {
-            fprintf(stderr, "Error al escribir en el bloque %u.\n", i);
-            bumount();
-            exit(FALLO);
-        }
-    }
-    */
 
     if (bumount() == FALLO)
     {

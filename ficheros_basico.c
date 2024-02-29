@@ -52,8 +52,6 @@ int initSB(unsigned int nbloques, unsigned int ninodos)
     SB.totBloques = nbloques;
     SB.totInodos = ninodos; // ninodos=nbloques/4;
 
-    // bwrite(posSB, &SB);
-
     // Escribir la estructura en el bloque posSB
     if (bwrite(posSB, &SB) == FALLO)
     {
@@ -78,17 +76,30 @@ int initMB()
 
     int posBloqueMB = SB.posPrimerBloqueMB;
     int nBloquesMD = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
-    int nBloquesOcupan = nBloquesMD / 8 / BLOCKSIZE; // o int nBloquesOcupan = nBloquesMD / BLOCKSIZE;
+    int nBloquesOcupan = nBloquesMD; // int nBloquesOcupan = nBloquesMD / 8 / BLOCKSIZE;
+
     unsigned char bufferMB[BLOCKSIZE];
     //// Marcar como ocupados los bloques que ocupan los metadatos
     while (nBloquesOcupan > 0)
     {
         memset(bufferMB, 255, sizeof(bufferMB));
         nBloquesOcupan--;
-        SB.cantBloquesLibres--;
-        bwrite(posBloqueMB, bufferMB);
+
+        SB.cantBloquesLibres--; // Actualizar la cantidad de bloques libres
+
+        // Escribir el bloque en el dispositivo
+        if (bwrite(posBloqueMB, bufferMB) == FALLO)
+        {
+            fprintf(stderr, "Error al escribir en el bloque %d.\n", posBloqueMB);
+            return FALLO;
+        }
+        // bwrite(posBloqueMB, bufferMB);
+
         posBloqueMB++;
     }
+
+    // Restaurar el bufferMB para el último bloque del mapa de bits
+    memset(bufferMB, 0, sizeof(bufferMB));
 
     int i;
     for (i = 0; i <= (nBloquesMD / 8) - 1; i++)
@@ -155,13 +166,19 @@ int initAI()
 
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
     unsigned int contInodos = SB.posPrimerInodoLibre + 1;
-    int i, j;
 
-    for (i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
+    for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
     { // Para cada bloque del array de inodos
 
+        // leer el bloque de inodos en el dispositivo virtual
+        if (bread(i, inodos) == FALLO)
+        {
+            fprintf(stderr, "Error al leer el bloque de inodos en el disco.\n");
+            return FALLO;
+        }
+
         // Inicializar cada inodo del bloque
-        for (j = 0; j < BLOCKSIZE / INODOSIZE; j++)
+        for (int j = 0; j < BLOCKSIZE / INODOSIZE; j++)
         {                         // Para cada inodo del bloque
             inodos[j].tipo = 'l'; // libre
 
