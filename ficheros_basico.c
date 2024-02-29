@@ -74,11 +74,16 @@ int initMB()
         return FALLO;
     }
 
+    // posicion del bloque de mapa de bits
     int posBloqueMB = SB.posPrimerBloqueMB;
+
+    // numero de bloques que ocupan los metadatos
     int nBloquesMD = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
+
     int nBloquesOcupan = nBloquesMD; // int nBloquesOcupan = nBloquesMD / 8 / BLOCKSIZE;
 
     unsigned char bufferMB[BLOCKSIZE];
+
     //// Marcar como ocupados los bloques que ocupan los metadatos
     while (nBloquesOcupan > 0)
     {
@@ -93,7 +98,6 @@ int initMB()
             fprintf(stderr, "Error al escribir en el bloque %d.\n", posBloqueMB);
             return FALLO;
         }
-        // bwrite(posBloqueMB, bufferMB);
 
         posBloqueMB++;
     }
