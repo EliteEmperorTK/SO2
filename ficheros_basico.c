@@ -215,13 +215,152 @@ int escribir_bit(unsigned int nbloque, unsigned int bit)
 char leer_bit(unsigned int nbloque)
 {
 }
-
+*/
 int reservar_bloque()
 {
+    struct superbloque SB;
+    struct superbloque bufferSB; // se puede borrar
+    unsigned char bufferMB[BLOCKSIZE];
+    int nbloqueMB;
+    int posbyte;
+    int posbit;
+    int nbloque;
+
+    // Leer el superbloque
+    if (bread(posSB, &SB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el superbloque en el disco.\n");
+        return FALLO;
+    }
+
+    // Comprobar si quedan bloques libres
+    if (SB.cantBloquesLibres <= 0)
+    {
+        fprintf(stderr, "No quedan bloques libres en el disco.\n");
+        return FALLO;
+    }
+
+    // Iterar sobre los bloques del mapa de bits
+    for (nbloqueMB = 0; nbloqueMB < SB.totBloques; nbloqueMB++) // deberia ser hasta <tamMB(SB.totBloques) para no salirse del MB
+    {
+        // Leer el bloque del mapa de bits
+        if (bread(nbloqueMB + SB.posPrimerBloqueMB, bufferMB) == FALLO)
+        {
+            fprintf(stderr, "Error al leer el bloque %d del mapa de bits.\n", nbloqueMB + SB.posPrimerBloqueMB);
+            return FALLO;
+        }
+
+        // Comparar con el buffer auxiliar para encontrar el primer byte con algún bit a 0
+        unsigned char bufferAux[BLOCKSIZE];
+        memset(bufferAux, 255, BLOCKSIZE); // llenamos el buffer auxiliar con bits a 1
+        if (memcmp(bufferMB, bufferAux, BLOCKSIZE) != 0)
+        {
+            // Encontrar el primer byte con algún bit a 0
+            for (posbyte = 0; posbyte < BLOCKSIZE; posbyte++)
+            {
+                if (bufferMB[posbyte] != 255)
+                {
+                    break;
+                }
+            }
+
+            // Encontrar el primer bit a 0 dentro de ese byte
+            unsigned char mascara = 128; // 10000000
+            posbit = 0;
+            while (bufferMB[posbyte] & mascara) // operador AND para bits
+            {
+                bufferMB[posbyte] <<= 1; // desplazamiento de bits a la izquierda
+                posbit++;
+            }
+
+            // Calcular el número de bloque físico
+            nbloque = (nbloqueMB * BLOCKSIZE + posbyte) * 8 + posbit;
+
+            // Marcar el bloque como reservado
+            if (escribir_bit(nbloque, 1) == FALLO)
+            {
+                fprintf(stderr, "Error al escribir el bit en la posición %d.\n", nbloque);
+                return FALLO;
+            }
+
+            // Actualizar la cantidad de bloques libres en el superbloque
+            SB.cantBloquesLibres--;
+
+            // Guardar el superbloque actualizado
+            if (bwrite(posSB, &SB) == FALLO)
+            {
+                fprintf(stderr, "Error al guardar el superbloque actualizado en el disco.\n");
+                return FALLO;
+            }
+
+            // Limpiar el bloque en la zona de datos
+            unsigned char bufferDatos[BLOCKSIZE];
+            memset(bufferDatos, 0, BLOCKSIZE);
+            if (bwrite(nbloque, bufferDatos) == FALLO)
+            {
+                fprintf(stderr, "Error al limpiar el bloque %d en la zona de datos.\n", nbloque);
+                return FALLO;
+            }
+
+            // Devolver el número de bloque reservado
+            return nbloque;
+        }
+    }
+
+    fprintf(stderr, "No se pudo encontrar un bloque libre en el mapa de bits.\n");
+    return FALLO;
 }
 
 int liberar_bloque(unsigned int nbloque)
 {
+    struct superbloque SB;
+    unsigned char bufferMB[BLOCKSIZE];
+
+    // Leer el superbloque para obtener información relevante
+    if (bread(posSB, &SB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el superbloque en el disco.\n");
+        return FALLO;
+    }
+
+    // Calcular el número de bloque dentro del mapa de bits (MB) //revisar
+    unsigned int nbloqueMB = nbloque / (BLOCKSIZE * 8);
+
+    // Leer el bloque correspondiente del mapa de bits
+    if (bread(nbloqueMB + SB.posPrimerBloqueMB, bufferMB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el bloque del mapa de bits en el disco.\n");
+        return FALLO;
+    }
+
+    // Calcular la posición del byte dentro del bloque del mapa de bits //revisar
+    unsigned int posbyte = (nbloque % (BLOCKSIZE * 8)) / 8;
+
+    // Calcular la posición del bit dentro del byte //revisar
+    unsigned int posbit = nbloque % 8;
+
+    // Actualizar el bit correspondiente a 0 en el buffer del mapa de bits //revisar
+    bufferMB[posbyte] &= ~(1 << (7 - posbit));
+
+    // Escribir el bloque actualizado del mapa de bits en el dispositivo
+    if (bwrite(nbloqueMB + SB.posPrimerBloqueMB, bufferMB) == FALLO)
+    {
+        fprintf(stderr, "Error al escribir el bloque del mapa de bits en el disco.\n");
+        return FALLO;
+    }
+
+    // Incrementar la cantidad de bloques libres en el superbloque
+    SB.cantBloquesLibres++;
+
+    // Escribir el superbloque actualizado en el dispositivo
+    if (bwrite(posSB, &SB) == FALLO)
+    {
+        fprintf(stderr, "Error al escribir el superbloque en el disco.\n");
+        return FALLO;
+    }
+
+    // Devolver el número de bloque liberado
+    return nbloque;
 }
 
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
@@ -234,4 +373,4 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo)
 
 int reservar_inodo(unsigned char tipo, unsigned char permisos)
 {
-}*/
+}
