@@ -363,14 +363,104 @@ int liberar_bloque(unsigned int nbloque)
     return nbloque;
 }
 
-int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
-{
+int escribir_inodo(unsigned int ninodo, struct inodo *inodo){
+    struct superbloque SB;
+
+    if(bread(posSB,&SB) == FALLO){
+        perror(RED "Error en escribir_inodo al leer el superbloque." RESET);
+        return FALLO;
+    }
+
+    //Encontramos el bloque
+    int nBloqueAI = (ninodo * INODOSIZE) / BLOCKSIZE;
+    int nBloqueAbs = nBloqueAI + SB.posPrimerBloqueAI;
+
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    if(bread(nBloquesAbs,inodos) == FALLO){
+        // Error al leer el bloque
+        perror(RED "Error en escribir_inodo al leer el bloque." RESET);
+        return FALLO;
+    }
+
+    int posInodo = ninodo % (BLOCKSIZE/INODOSIZE);
+    inodos[posInodo] = *inodo;
+
+    if(bwrite(nBloquesAbs,inodos) == FALLO){
+        // Error al escribir el bloque
+        perror(RED "Error en escribir_inodo al escribir el bloque." RESET);
+        return FALLO;
+    }
+    return EXITO;
 }
 
-int leer_inodo(unsigned int ninodo, struct inodo *inodo)
-{
+
+int leer_inodo(unsigned int ninodo, struct inodo *inodo){
+    struct superbloque SB;
+
+    if(bread(posSB,&SB)== FALLO){
+        perror(RED "Error en leer_inodo al leer el superbloque." RESET);
+        return FALLO;
+    }
+
+    //Encontramos el bloque
+    int nBloqueAI = (ninodo * INODOSIZE) / BLOCKSIZE;
+    nBloqueAbs = nBloqueAI + SB.posPrimerBloqueAI;
+
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    if(bread(nBloquesAbs,inodos) == FALLO){
+        // Error al leer el bloque
+        perror(RED "Error en escribir_inodo al leer el bloque." RESET);
+        return FALLO;
+    }
+
+    int posInodo = ninodo % (BLOCKSIZE/INODOSIZE);
+    *inodo = inodos[posInodo]; 
+    return EXITO;
 }
 
-int reservar_inodo(unsigned char tipo, unsigned char permisos)
-{
+
+
+
+int reservar_inodo(unsigned char tipo, unsigned char permisos){
+    struct superbloque SB;
+    if(bread(posSB,&SB)== FALLO){
+        perror(RED "Error en reservar_inodo al leer el superbloque." RESET);
+        return FALLO;
+    }
+
+    if(SB.cantInodosLibres == 0){ //Si no quedan inodos libres, invocamos une error
+        perror(RED "Error en reservar_inodo. No hay ningun inodo libre." RESET);
+        return FALLO;
+    }
+
+    int posInodoReservado = SB.posPrimerInodoLibre;     //Guardamos la pos. del primer Inodo libre
+    SB.posPrimerInodoLibre++;                           //Hacemos que la pos. del primer inodo libre sea la posición siguiente
+    
+    //Inicializamos el inodo reservado y sus valores iniciales
+    struct inodo inodos;                             
+    inodos.tipo = tipo;
+    inodos.permisos = permisos;
+    inodos.nlinks = 1;
+    inodos.tamEnBytesLog = 0;
+    inodos.atime = time(NULL);
+    inodos.mtime = time(NULL);
+    inodos.ctime = time(NULL);
+    inodos.numBloquesOcupados = 0;
+    inodos.punterosDirectos = 0;
+    inodos.punterosIndirectos = 0;
+
+
+    if(escribir_inodo(posInodoReservado,inodos) == FALLO){//Escribimos el inodo que acabamos de reservar e inicializar
+        perror(RED "Error en reservar_inodo al escribir el inodo." RESET);
+        return FALLO;
+    }
+
+    SB.cantInodosLibres--;      //Decrementamos la cantidad de Inodos Libres que hay en el superbloque
+    
+    if(bwrite(posSB,&SB)== FALLO){  //Sobreescribimos los cambios realizados en el superbloque
+        perror(RED "Error en reservar_inodo al escribir en el superbloque." RESET);
+        return FALLO;
+    }
+    return posInodoReservado;   //La posición es relativa al Array de Inodos, no a la posición absoluta de todos los bloques
 }
+
