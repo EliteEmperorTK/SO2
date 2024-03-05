@@ -12,7 +12,7 @@ int bmount(const char *camino)
     if (descriptor == -1)
     {
         // Error al abrir el fichero
-        perror(RED "Error en bmount al abrir el fichero " RESET);
+        perror(RED "Error en bmount al abrir el fichero." RESET);
         return FALLO;
     }
     return descriptor;
@@ -23,7 +23,7 @@ int bumount()
     if (close(descriptor) == -1)
     {
         // Error al cerrar el fichero
-        perror(RED "Error en bumount al cerrar el fichero" RESET);
+        perror(RED "Error en bumount al cerrar el fichero." RESET);
         return FALLO;
     }
     return EXITO;
@@ -65,6 +65,5 @@ int bread(unsigned int nbloque, void *buf)
         fprintf(stderr, "%sError en bread al leer del fichero: %s%s\n", RED, strerror(errno), RESET);
         return FALLO;
     }
-
     return bytes_leidos;
 }
