@@ -464,3 +464,8 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     return posInodoReservado;   //La posición es relativa al Array de Inodos, no a la posición absoluta de todos los bloques
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned char reservar){
+}
+
