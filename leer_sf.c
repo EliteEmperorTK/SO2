@@ -5,7 +5,7 @@ int main(int argc, char **argv)
     if (argc != 2)
     {
         fprintf(stderr, "Uso: %s <nombre_dispositivo>\n", argv[0]);
-        exit(EXIT_FAILURE);
+        exit(FALLO);
     }
 
     const char *nombre_dispositivo = argv[1];
@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     if (bmount(nombre_dispositivo) == FALLO)
     {
         fprintf(stderr, "Error al montar el dispositivo virtual.\n");
-        exit(EXIT_FAILURE);
+        exit(FALLO);
     }
 
     // Leer el superbloque
@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     {
         fprintf(stderr, "Error al leer el superbloque.\n");
         bumount();
-        exit(EXIT_FAILURE);
+        exit(FALLO);
     }
 
     // Mostrar los datos del superbloque
@@ -55,11 +55,12 @@ int main(int argc, char **argv)
     {
         printf("%d ", posInodoLibre);
         struct inodo i;
+
         if (bread(posInodoLibre, &i) == FALLO)
         {
             fprintf(stderr, "Error al leer el inodo libre.\n");
             bumount();
-            exit(EXIT_FAILURE);
+            exit(FALLO);
         }
         posInodoLibre = i.punterosDirectos[0];
     }
@@ -69,8 +70,8 @@ int main(int argc, char **argv)
     if (bumount() == FALLO)
     {
         fprintf(stderr, "Error al desmontar el dispositivo virtual.\n");
-        exit(EXIT_FAILURE);
+        exit(FALLO);
     }
 
-    return EXIT_SUCCESS;
+    return EXITO;
 }
