@@ -469,3 +469,6 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned char reservar){
 }
 
+funcion obtener_nRangoBL (*inodo: struct inodo, nblogico:unsigned ent, *ptr:unsigned ent) devolver nrangoBL:ent
+    
+funcion obtener_indice (nblogico: unsigned ent, nivel_punteros:ent) devolver ind:ent
