@@ -207,13 +207,52 @@ int initAI()
     return EXITO;
 }
 
-/*
+
 int escribir_bit(unsigned int nbloque, unsigned int bit)
 {
+    struct superbloque SB;
+    int posbyte=nbloque/8;
+    int posbit=nbloque%8;
+    int nbloqueMB=posbyte/BLOCKSIZE;
+    int nbloqueabs=SB.posPrimerBloqueMB+nbloqueMB;
+    unsigned char bufferMB[BLOCKSIZE];
+    if (bread(nbloqueabs,bufferMB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el bloque de datos en el disco.\n");
+        return FALLO;
+    }
+    posbyte=posbyte%BLOCKSIZE;
+    unsigned char mascara=128;
+    mascara>>=posbit;
+    if(bit==1)
+    {
+        bufferMB[posbyte]|=mascara;
+    }
+    else
+    {
+        bufferMB[posbyte]&=~mascara;
+    }
+    bwrite(nbloqueabs,bufferMB);
 }
 
 char leer_bit(unsigned int nbloque)
 {
+    struct superbloque SB;
+    unsigned char mascara = 128;    // 10000000
+    int posbyte=nbloque/8;
+    int posbit=nbloque%8;
+    unsigned char bufferMB[BLOCKSIZE];
+    int nbloqueMB=posbyte/BLOCKSIZE;
+    int nbloqueabs=SB.posPrimerBloqueMB+nbloqueMB;
+    if (bread(nbloqueabs,bufferMB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el bloque de datos en el disco.\n");
+        return FALLO;
+    } 
+    mascara >>= posbit;             // desplazamiento de bits a la derecha, los que indique posbit
+    mascara &= bufferMB[posbyte];   // operador AND para bits
+    mascara >>= (7 - posbit);       // desplazamiento de bits a la derecha para dejar el 0 o 1 en el extremo derecho y leerlo en decimal
+    return mascara;
 }
 
 int reservar_bloque()
