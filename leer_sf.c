@@ -78,12 +78,6 @@ for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
                 break;
             }
         }
-        // Escribir el bloque de inodos en el dispositivo virtual
-        if (bwrite(i, inodos) == FALLO)
-        {
-            fprintf(stderr, "Error al leer el superbloque en el disco.\n");
-            return FALLO;
-        }
     }
 
     // Desmontar el dispositivo virtual
