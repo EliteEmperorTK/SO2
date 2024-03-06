@@ -49,22 +49,42 @@ int main(int argc, char **argv)
 
     // Recorrer la lista enlazada de inodos libres
     printf("RECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
-    int posInodoLibre = SB.posPrimerInodoLibre;
 
-    while (posInodoLibre != -1)
-    {
-        printf("%d ", posInodoLibre);
-        struct inodo i;
+    struct inodo inodos[BLOCKSIZE / INODOSIZE];
+    unsigned int contInodos = SB.posPrimerInodoLibre + 1;
 
-        if (bread(posInodoLibre, &i) == FALLO)
+for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
+    { // Para cada bloque del array de inodos
+
+        // leer el bloque de inodos en el dispositivo virtual
+        if (bread(i, inodos) == FALLO)
         {
-            fprintf(stderr, "Error al leer el inodo libre.\n");
-            bumount();
-            exit(FALLO);
+            fprintf(stderr, "Error al leer el bloque de inodos en el disco.\n");
+            return FALLO;
         }
-        posInodoLibre = i.punterosDirectos[0];
+
+        // Inicializar cada inodo del bloque
+        for (int j = 0; j < BLOCKSIZE / INODOSIZE; j++)
+        {// Leemos cada inodo del bloque
+
+            if (contInodos < SB.totInodos)
+            {                                               // Si no hemos llegado al último inodo del array de inodos
+                printf("%d ",inodos[j].punterosDirectos[0]);
+                contInodos++;
+            }
+            else
+            { // Hemos llegado al último inodo
+                printf("%d ", inodos[j].punterosDirectos[0]);
+                break;
+            }
+        }
+        // Escribir el bloque de inodos en el dispositivo virtual
+        if (bwrite(i, inodos) == FALLO)
+        {
+            fprintf(stderr, "Error al leer el superbloque en el disco.\n");
+            return FALLO;
+        }
     }
-    printf("\n");
 
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
