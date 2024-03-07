@@ -211,6 +211,12 @@ int initAI()
 int escribir_bit(unsigned int nbloque, unsigned int bit)
 {
     struct superbloque SB;
+    if (bread(posSB,&SB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el superbloque.\n");
+        return FALLO;
+    }
+
     int posbyte=nbloque/8;
     int posbit=nbloque%8;
     int nbloqueMB=posbyte/BLOCKSIZE;
@@ -232,12 +238,23 @@ int escribir_bit(unsigned int nbloque, unsigned int bit)
     {
         bufferMB[posbyte]&=~mascara;
     }
-    bwrite(nbloqueabs,bufferMB);
+
+    if(bwrite(nbloqueabs,bufferMB) == FALLO){
+        fprintf(stderr,"Error al escribir el bit");
+        return FALLO;
+    }
+    return EXITO;
 }
 
 char leer_bit(unsigned int nbloque)
 {
     struct superbloque SB;
+    if (bread(posSB,&SB) == FALLO)
+    {
+        fprintf(stderr, "Error al leer el superbloque.\n");
+        return FALLO;
+    }
+
     unsigned char mascara = 128;    // 10000000
     int posbyte=nbloque/8;
     int posbit=nbloque%8;
@@ -258,7 +275,6 @@ char leer_bit(unsigned int nbloque)
 int reservar_bloque()
 {
     struct superbloque SB;
-    struct superbloque bufferSB; // se puede borrar
     unsigned char bufferMB[BLOCKSIZE];
     int nbloqueMB;
     int posbyte;
@@ -417,7 +433,7 @@ int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
     int nBloqueAbs = nBloqueAI + SB.posPrimerBloqueAI;
 
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
-    if (bread(nBloquesAbs, inodos) == FALLO)
+    if (bread(nBloqueAbs, inodos) == FALLO)
     {
         // Error al leer el bloque
         perror(RED "Error en escribir_inodo al leer el bloque." RESET);
@@ -427,7 +443,7 @@ int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
     int posInodo = ninodo % (BLOCKSIZE / INODOSIZE);
     inodos[posInodo] = *inodo;
 
-    if (bwrite(nBloquesAbs, inodos) == FALLO)
+    if (bwrite(nBloqueAbs, inodos) == FALLO)
     {
         // Error al escribir el bloque
         perror(RED "Error en escribir_inodo al escribir el bloque." RESET);
@@ -451,7 +467,8 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo)
     int nBloqueAbs = nBloqueAI + SB.posPrimerBloqueAI;
 
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
-    if (bread(nBloquesAbs, inodos) == FALLO)
+
+    if (bread(nBloqueAbs, inodos) == FALLO)
     {
         // Error al leer el bloque
         perror(RED "Error en escribir_inodo al leer el bloque." RESET);
@@ -491,10 +508,10 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
     inodos.mtime = time(NULL);
     inodos.ctime = time(NULL);
     inodos.numBloquesOcupados = 0;
-    inodos.punterosDirectos = 0;
-    inodos.punterosIndirectos = 0;
+    inodos.punterosDirectos[0] = 0;
+    inodos.punterosIndirectos[0] = 0;
 
-    if (escribir_inodo(posInodoReservado, inodos) == FALLO)
+    if (escribir_inodo(posInodoReservado, &inodos) == FALLO)
     { // Escribimos el inodo que acabamos de reservar e inicializar
         perror(RED "Error en reservar_inodo al escribir el inodo." RESET);
         return FALLO;
@@ -509,4 +526,3 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
     }
     return posInodoReservado; // La posición es relativa al Array de Inodos, no a la posición absoluta de todos los bloques
 }
-*/
