@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     printf("totBloques = %d\n", SB.totBloques);
     printf("totInodos = %d\n", SB.totInodos);
     printf("\n");
-
+/*
     // Mostrar el tamaño de los struct
     printf("sizeof struct superbloque: %lu\n", sizeof(struct superbloque));
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
@@ -52,6 +52,8 @@ int main(int argc, char **argv)
 
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
     unsigned int contInodos = SB.posPrimerInodoLibre + 1;
+
+
 
 for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
     { // Para cada bloque del array de inodos
@@ -78,7 +80,60 @@ for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
                 break;
             }
         }
+    }*/
+
+
+
+    printf("RESERVAMOS UN BLOQUE Y LUEGO LO LIBERAMOS\n"); ////////////RESERVAR BLOQUE O LIBERAR_BLOQUE NO FUNCIONA BIEN/////////
+    //Reservamos el bloque
+    int nBloque = reservar_bloque();
+    if(nBloque == FALLO){
+        fprintf(stderr, "Error al reservar un bloque.\n");
+        return FALLO;
     }
+    printf("Se ha reservado el bloque físico nº %d que era el 1º libre indicado por el MB \n", nBloque); 
+    printf("SB.cantBloquesLibres = %d \n", SB.cantBloquesLibres);
+
+    //Liberamos el bloque
+    if(liberar_bloque(nBloque) == FALLO){
+        fprintf(stderr, "Error al liberar el bloque.\n");
+        return FALLO;
+    }
+    printf("Liberamos ese bloque y después SB.cantBloquesLibres = %d \n", SB.cantBloquesLibres);
+
+
+
+    printf("\nMAPA DE BITS CON BLOQUES DE METADATOS OCUPADOS\n");
+    //Falta hacerlo
+
+
+
+
+    printf("\nDATOS DEL DIRECTORIO RAIZ\n");
+    struct tm *ts;
+    char atime[80];
+    char mtime[80];
+    char ctime[80];
+
+    struct inodo inodo;
+    int ninodo = SB.posInodoRaiz;
+
+    leer_inodo(ninodo, &inodo); //Leemos el inodo Raíz
+
+    //Sacamos los tiempos
+    ts = localtime(&inodo.atime);
+    strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", ts);
+    ts = localtime(&inodo.mtime);
+    strftime(mtime, sizeof(mtime), "%a %Y-%m-%d %H:%M:%S", ts);
+    ts = localtime(&inodo.ctime);
+    strftime(ctime, sizeof(ctime), "%a %Y-%m-%d %H:%M:%S", ts);
+
+    printf("tipo: %c \n", inodo.tipo);
+    printf("permisos %hhu \n", inodo.permisos);
+    printf("atime: %s \nmtime: %s \nctime: %s\n",atime,mtime,ctime);  //Imprimimos los tiempos
+    printf("nlinks: %d \n", inodo.nlinks);
+    printf("tamEnBytesLog: %d \n", inodo.tamEnBytesLog);
+    printf("numBloquesOcupados: %d \n", inodo.numBloquesOcupados);
 
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)

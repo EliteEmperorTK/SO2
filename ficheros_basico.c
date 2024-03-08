@@ -16,6 +16,9 @@ int tamMB(unsigned int nbloques)
     }
 }
 
+
+
+
 // Calcula el tamaño en bloques del array de inodos.
 int tamAI(unsigned int ninodos)
 { // Se dice algo sobre que el mi_mkfs.c pasará este dato que será ninodos=nbloques/4
@@ -31,6 +34,9 @@ int tamAI(unsigned int ninodos)
         return ((tam / BLOCKSIZE) + 1);
     }
 }
+
+
+
 
 // Inicializa los datos del superbloque.
 int initSB(unsigned int nbloques, unsigned int ninodos)
@@ -61,6 +67,9 @@ int initSB(unsigned int nbloques, unsigned int ninodos)
 
     return EXITO;
 }
+
+
+
 
 // Inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos.
 int initMB()
@@ -159,6 +168,8 @@ int initMB()
     return EXITO;
 }
 
+
+
 int initAI()
 { // Array Inodos
     struct superbloque SB;
@@ -208,6 +219,9 @@ int initAI()
 }
 
 
+
+
+
 int escribir_bit(unsigned int nbloque, unsigned int bit)
 {
     struct superbloque SB;
@@ -246,6 +260,10 @@ int escribir_bit(unsigned int nbloque, unsigned int bit)
     return EXITO;
 }
 
+
+
+
+
 char leer_bit(unsigned int nbloque)
 {
     struct superbloque SB;
@@ -271,6 +289,10 @@ char leer_bit(unsigned int nbloque)
     mascara >>= (7 - posbit);       // desplazamiento de bits a la derecha para dejar el 0 o 1 en el extremo derecho y leerlo en decimal
     return mascara;
 }
+
+
+
+
 
 int reservar_bloque()
 {
@@ -366,6 +388,10 @@ int reservar_bloque()
     return FALLO;
 }
 
+
+
+
+
 int liberar_bloque(unsigned int nbloque)
 {
     struct superbloque SB;
@@ -418,6 +444,10 @@ int liberar_bloque(unsigned int nbloque)
     return nbloque;
 }
 
+
+
+
+
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
 {
     struct superbloque SB;
@@ -452,6 +482,11 @@ int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
     return EXITO;
 }
 
+
+
+
+
+
 int leer_inodo(unsigned int ninodo, struct inodo *inodo)
 {
     struct superbloque SB;
@@ -479,6 +514,11 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo)
     *inodo = inodos[posInodo];
     return EXITO;
 }
+
+
+
+
+
 
 int reservar_inodo(unsigned char tipo, unsigned char permisos)
 {
