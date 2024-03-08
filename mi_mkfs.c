@@ -18,7 +18,7 @@ int main(int argc, char **argv)
         exit(FALLO);
     }
 
-    // inicializar a 0 el fichero utilizado como dispositivo virtual
+    // Inicializar a 0 el fichero utilizado como dispositivo virtual
     unsigned char buffer[BLOCKSIZE];
     memset(buffer, 0, BLOCKSIZE); // Inicializar el buffer a 0s
 
