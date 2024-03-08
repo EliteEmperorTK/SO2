@@ -104,7 +104,7 @@ for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
 
 
     printf("\nMAPA DE BITS CON BLOQUES DE METADATOS OCUPADOS\n");
-    //Falta hacerlo
+////////Falta hacerlo////////////
 
 
 
