@@ -79,6 +79,6 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos);
 
 
 
-int obtener_nRangoBL (struct inodo *inodos, unsigned int nblogico, unsigned int *ptr)
-int obtener_indice(unsigned int nblogico, int nivel_punteros)
+int obtener_nRangoBL (struct inodo *inodos, unsigned int nblogico, unsigned int *ptr);
+int obtener_indice(unsigned int nblogico, int nivel_punteros);
 int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned char reservar);
