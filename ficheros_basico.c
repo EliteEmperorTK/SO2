@@ -566,3 +566,152 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
     }
     return posInodoReservado; // La posición es relativa al Array de Inodos, no a la posición absoluta de todos los bloques
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////
+int obtener_nRangoBL (struct inodo *inodos, unsigned int nblogico, unsigned int *ptr){ //Devolvemos el nrangoBL
+
+    if (nblogico<DIRECTOS){   // <12
+        *ptr=inodos.punterosDirectos[nblogico];
+        return 0;
+
+    }else if (nblogico<INDIRECTOS0){   // <268    
+        *ptr=inodos.punterosIndirectos[0];
+        return 1;
+
+    }else if (nblogico<INDIRECTOS1){   // <65.804     
+        *ptr=inodos.punterosIndirectos[1];
+        return 2;
+
+    }else if(nblogico<INDIRECTOS2){   // <16.843.020              
+        *ptr=inodos.punterosIndirectos[2];
+        return 3;
+
+    }else{         
+        *ptr=0;            
+        perror(RED "Bloque lógico fuera de rango" RESET);
+        return FALLO;  
+    }        
+}
+
+
+
+
+int obtener_indice(unsigned int nblogico, int nivel_punteros){   //Devolvemos el índice
+    if(nblogico < DIRECTOS){    //ej. nblogico=8 
+        return nblogico;
+
+    }else if(nblogico < INDIRECTOS0){ //ej. nblogico=204
+        return (nblogico - DIRECTOS);
+
+    }else if(nblogico < INDIRECTOS1){ //ej. nblogico=30.004 
+        if(nivel_punteros == 2){
+        return ((nblogico - INDIRECTOS0) / NPUNTEROS); 
+
+        }else if(nivel_punteros == 1){
+        return ((nblogico - INDIRECTOS0) % NPUNTEROS);
+        }
+
+    }else if(nblogico < INDIRECTOS2){ //ej. nblogico=400.004           
+        if(nivel_punteros == 3){
+            return ((nblogico - INDIRECTOS1) / (NPUNTEROS * NPUNTEROS));
+        }else if(nivel_punteros == 2){      
+            return (((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) / NPUNTEROS);            
+        }else if(nivel_punteros == 1){    
+            return (((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS);   
+        }            
+    }
+}
+
+
+
+
+int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned char reservar){
+    //Inicializamos las variables
+    unsigned int ptr = 0;
+    unsigned int ptr_ant = 0;  
+
+    int nRangoBL = obtener_nRangoBL(inodos,nblogico, &ptr); //0:D, 1:I0, 2:I1, 3:I2
+    if (nRangoBL == FALLO)
+    {
+        perror(RED "Error al obtener el rango en traducir_bloque_inodo." RESET);
+        return FALLO;
+    }
+    int nivel_punteros = nRangoBL; //el nivel_punteros +alto es el que cuelga directamente del inodo
+
+    int indice;  
+    unsigned int buffer[NPUNTEROS];
+
+
+    while(nivel_punteros > 0){ //iterar para cada nivel de punteros indirectos
+
+        if(ptr == 0){ //no cuelgan bloques de punteros
+            if(reservar == 0){ // bloque inexistente -> no imprimir error por pantalla!!!
+                return FALLO;
+
+            }else{ //reservar bloques de punteros y crear enlaces desde el  inodo hasta el bloque de datos
+                ptr = reservar_bloque(); //de punteros
+                if (ptr == FALLO)
+                { // Sobreescribimos los cambios realizados en el superbloque
+                    perror(RED "Error al intentar reservar el bloque en traducir_bloque_inodo." RESET);
+                    return FALLO;
+                }                 
+                inodos.numBloquesOcupados++;
+                inodos.ctime = time(NULL); //fecha actual
+
+                if(nivel_punteros == nRangoBL){  //el bloque cuelga directamente del inodo
+                    inodos.punterosIndirectos[nRangoBL-1] = ptr; 
+                }else{   //el bloque cuelga de otro bloque de punteros
+                    buffer[indice] = ptr;
+                    if(bwrite(ptr_ant, buffer) == FALLO){ //salvamos en el dispositivo el buffer de punteros modificado
+                        perror(RED "Error al intentar escribir en el buffer de punteros modificado en traducir_bloque_inodo." RESET);
+                        return FALLO;
+                    }
+                }
+                if(memset(buffer, 0, BLOCKSIZE) == FALLO){ //ponemos a 0 todos los punteros del buffer 
+                    perror(RED "Error al intentar poner a 0 todos los punteros del buffer en traducir_bloque_inodo." RESET);
+                    return FALLO;
+                }
+            } 
+        }else{
+            if(read(ptr, buffer) == FALLO){ //leemos del dispositivo el bloque de punteros ya existente
+                perror(RED "Error al intentar leer el dispositivo del bloque de punteros en traducir_bloque_inodo." RESET);
+                return FALLO;
+            }
+        }
+    indice = obtener_indice(nblogico, nivel_punteros);
+    if (indice == FALLO)
+    {
+        perror(RED "Error al obtener el índice en traducir_bloque_inodo." RESET);
+        return FALLO;
+    }
+    ptr_ant = ptr; //guardamos el puntero actual
+    ptr = buffer[indice]; // y lo desplazamos al siguiente nivel 
+    nivel_punteros--;   
+  } //al salir de este bucle ya estamos al nivel de datos
+
+
+    if(ptr == 0){ //no existe bloque de datos
+        if(reservar == 0){ 
+            return -1;
+        }else{
+            ptr = reservar_bloque(); //de datos
+            if (ptr == FALLO)
+            {
+                perror(RED "Error al reservar el bloque en traducir_bloque_inodo." RESET);
+                return FALLO;
+            }
+            inodos.numBloquesOcupados++;
+            inodos.ctime = time(NULL);
+            if(nRangoBL == 0){ //si era un puntero Directo 
+                inodos.punterosDirectos[nblogico] = ptr; //asignamos la direción del bl. de datos en el inodo
+            }else{
+                buffer[indice] = ptr; //asignamos la dirección del bloque de datos en el buffer
+                if(bwrite(ptr_ant, buffer)){ //salvamos en el dispositivo el buffer de punteros modificado 
+                    perror(RED "Error al salvar en el dispositivo el buffer de punteros modificado en traducir_bloque_inodo");
+                    return FALLO;
+                }
+            }
+        }
+    }
+}
