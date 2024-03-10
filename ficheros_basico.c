@@ -572,19 +572,19 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
 int obtener_nRangoBL (struct inodo *inodos, unsigned int nblogico, unsigned int *ptr){ //Devolvemos el nrangoBL
 
     if (nblogico<DIRECTOS){   // <12
-        *ptr=inodos.punterosDirectos[nblogico];
+        *ptr=inodos->punterosDirectos[nblogico];
         return 0;
 
     }else if (nblogico<INDIRECTOS0){   // <268    
-        *ptr=inodos.punterosIndirectos[0];
+        *ptr=inodos->punterosIndirectos[0];
         return 1;
 
     }else if (nblogico<INDIRECTOS1){   // <65.804     
-        *ptr=inodos.punterosIndirectos[1];
+        *ptr=inodos->punterosIndirectos[1];
         return 2;
 
     }else if(nblogico<INDIRECTOS2){   // <16.843.020              
-        *ptr=inodos.punterosIndirectos[2];
+        *ptr=inodos->punterosIndirectos[2];
         return 3;
 
     }else{         
@@ -621,6 +621,7 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){   //Devolvemos el
             return (((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS);   
         }            
     }
+    return FALLO;   //Si no se ha encontrado, devolvemos FALLO
 }
 
 
@@ -656,11 +657,11 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
                     perror(RED "Error al intentar reservar el bloque en traducir_bloque_inodo." RESET);
                     return FALLO;
                 }                 
-                inodos.numBloquesOcupados++;
-                inodos.ctime = time(NULL); //fecha actual
+                inodos->numBloquesOcupados++;
+                inodos->ctime = time(NULL); //fecha actual
 
                 if(nivel_punteros == nRangoBL){  //el bloque cuelga directamente del inodo
-                    inodos.punterosIndirectos[nRangoBL-1] = ptr; 
+                    inodos->punterosIndirectos[nRangoBL-1] = ptr; 
                 }else{   //el bloque cuelga de otro bloque de punteros
                     buffer[indice] = ptr;
                     if(bwrite(ptr_ant, buffer) == FALLO){ //salvamos en el dispositivo el buffer de punteros modificado
@@ -668,13 +669,10 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
                         return FALLO;
                     }
                 }
-                if(memset(buffer, 0, BLOCKSIZE) == FALLO){ //ponemos a 0 todos los punteros del buffer 
-                    perror(RED "Error al intentar poner a 0 todos los punteros del buffer en traducir_bloque_inodo." RESET);
-                    return FALLO;
-                }
+                memset(buffer, 0, BLOCKSIZE); //ponemos a 0 todos los punteros del buffer 
             } 
         }else{
-            if(read(ptr, buffer) == FALLO){ //leemos del dispositivo el bloque de punteros ya existente
+            if(bread(ptr, buffer) == FALLO){ //leemos del dispositivo el bloque de punteros ya existente
                 perror(RED "Error al intentar leer el dispositivo del bloque de punteros en traducir_bloque_inodo." RESET);
                 return FALLO;
             }
@@ -701,10 +699,10 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
                 perror(RED "Error al reservar el bloque en traducir_bloque_inodo." RESET);
                 return FALLO;
             }
-            inodos.numBloquesOcupados++;
-            inodos.ctime = time(NULL);
+            inodos->numBloquesOcupados++;
+            inodos->ctime = time(NULL);
             if(nRangoBL == 0){ //si era un puntero Directo 
-                inodos.punterosDirectos[nblogico] = ptr; //asignamos la direción del bl. de datos en el inodo
+                inodos->punterosDirectos[nblogico] = ptr; //asignamos la direción del bl. de datos en el inodo
             }else{
                 buffer[indice] = ptr; //asignamos la dirección del bloque de datos en el buffer
                 if(bwrite(ptr_ant, buffer)){ //salvamos en el dispositivo el buffer de punteros modificado 
@@ -714,4 +712,6 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
             }
         }
     }
+    //mi_write_f() se encargará de salvar los cambios del inodo en disco
+    return ptr; //nº de bloque físico correspondiente al bloque de datos lógico, nblogico
 }
