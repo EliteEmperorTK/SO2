@@ -32,8 +32,6 @@ int main(int argc, char **argv)
         }
     }
 
-
-
     // Inicializar superbloque
     if (initSB(nbloques, nbloques / 4) == FALLO)
     {
@@ -41,8 +39,6 @@ int main(int argc, char **argv)
         bumount();
         exit(FALLO);
     }
-
-
 
     // Inicializar mapa de bits
     if (initMB() == FALLO)
@@ -52,8 +48,6 @@ int main(int argc, char **argv)
         exit(FALLO);
     }
 
-
-
     // Inicializar array de inodos
     if (initAI() == FALLO)
     {
@@ -62,17 +56,13 @@ int main(int argc, char **argv)
         exit(FALLO);
     }
 
-
-
     // Crear el directorio raíz
-    if (reservar_inodo ('d', 7)  == FALLO)
+    if (reservar_inodo('d', 7) == FALLO)
     {
         fprintf(stderr, "Error al crear el directorio raíz.\n");
         bumount();
         exit(FALLO);
     }
-
-
 
     if (bumount() == FALLO)
     {
