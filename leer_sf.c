@@ -163,6 +163,24 @@ int main(int argc, char **argv)
     printf("tamEnBytesLog: %d \n", inodo.tamEnBytesLog);
     printf("numBloquesOcupados: %d \n", inodo.numBloquesOcupados);
 
+    //nivel 4 test
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    int inodoReservado = reservar_inodo('f',6);
+    printf("Se ha reservado el inodo n.%d\n", inodoReservado);
+    leer_inodo(inodoReservado,&inodos[0]);
+    bread(posSB,&SB);
+    printf("\nDEBUG - posPrimerInodoLibre (después de la reserva): %d\n\n",SB.posPrimerInodoLibre);
+
+    printf("\nTRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n");
+    printf("Traducciòn bloque lògico n.8: %d\n",traducir_bloque_inodo(&inodos[0],8,'1'));
+    inodoReservado=reservar_inodo('f',6);
+    leer_inodo(inodoReservado,&inodos[1]);
+    bread(posSB,&SB);
+    printf("\nDEBUG - posPrimerInodoLibre (después de la reserva): %d\n\n",SB.posPrimerInodoLibre);
+    printf("Traducciòn bloque lògico n.204: %d\n",traducir_bloque_inodo(&inodos[1],204,'1'));
+    printf("Traducciòn bloque lògico n.30.004: %d\n",traducir_bloque_inodo(&inodos[0],30004,'1'));
+    printf("Traducciòn bloque lògico n.400.004: %d\n",traducir_bloque_inodo(&inodos[0],400004,'1'));
+    printf("Traducciòn bloque lògico n.468.750: %d\n",traducir_bloque_inodo(&inodos[0],468.750,'1'));
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
     {
