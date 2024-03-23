@@ -41,6 +41,10 @@ int main(int argc, char **argv)
     printf("totBloques = %d\n", SB.totBloques);
     printf("totInodos = %d\n", SB.totInodos);
     printf("\n");
+
+    /////////////
+    // NIVEL 2 //
+    /////////////
     /*
         // Mostrar el tamaño de los struct
         printf("sizeof struct superbloque: %lu\n", sizeof(struct superbloque));
@@ -52,8 +56,6 @@ int main(int argc, char **argv)
 
         struct inodo inodos[BLOCKSIZE / INODOSIZE];
         unsigned int contInodos = SB.posPrimerInodoLibre + 1;
-
-
 
     for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++)
         { // Para cada bloque del array de inodos
@@ -82,6 +84,10 @@ int main(int argc, char **argv)
             }
         }*/
 
+    /////////////
+    // NIVEL 3 //
+    /////////////
+    /*
     printf("RESERVAMOS UN BLOQUE Y LUEGO LO LIBERAMOS\n"); ////////////RESERVAR BLOQUE O LIBERAR_BLOQUE NO FUNCIONA BIEN/////////
     // Reservamos el bloque
     int nBloque = reservar_bloque();
@@ -162,25 +168,61 @@ int main(int argc, char **argv)
     printf("nlinks: %d \n", inodo.nlinks);
     printf("tamEnBytesLog: %d \n", inodo.tamEnBytesLog);
     printf("numBloquesOcupados: %d \n", inodo.numBloquesOcupados);
+    */
 
-    //nivel 4 test
-    struct inodo inodos[BLOCKSIZE/INODOSIZE];
-    int inodoReservado = reservar_inodo('f',6);
-    printf("Se ha reservado el inodo n.%d\n", inodoReservado);
-    leer_inodo(inodoReservado,&inodos[0]);
-    bread(posSB,&SB);
-    printf("\nDEBUG - posPrimerInodoLibre (después de la reserva): %d\n\n",SB.posPrimerInodoLibre);
+    //////////////
+    // NIVEL 4  //
+    //////////////
 
-    printf("\nTRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n");
-    printf("Traducciòn bloque lògico n.8: %d\n",traducir_bloque_inodo(&inodos[0],8,'1'));
-    inodoReservado=reservar_inodo('f',6);
-    leer_inodo(inodoReservado,&inodos[1]);
-    bread(posSB,&SB);
-    printf("\nDEBUG - posPrimerInodoLibre (después de la reserva): %d\n\n",SB.posPrimerInodoLibre);
-    printf("Traducciòn bloque lògico n.204: %d\n",traducir_bloque_inodo(&inodos[1],204,'1'));
-    printf("Traducciòn bloque lògico n.30.004: %d\n",traducir_bloque_inodo(&inodos[0],30004,'1'));
-    printf("Traducciòn bloque lògico n.400.004: %d\n",traducir_bloque_inodo(&inodos[0],400004,'1'));
-    printf("Traducciòn bloque lògico n.468.750: %d\n",traducir_bloque_inodo(&inodos[0],468.750,'1'));
+    int posInodoReservado = reservar_inodo('f', 6);
+
+    struct inodo inodos;
+    if (leer_inodo(posInodoReservado, &inodos) == FALLO) //
+    {
+        fprintf(stderr, "Error al leer el inodo en leer_sf.c .\n");
+        return FALLO;
+    }
+
+    printf("\nINODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n");
+
+    int bloqueTraducido1 = traducir_bloque_inodo(&inodos, 8, 1);
+
+    int bloqueTraducido2 = traducir_bloque_inodo(&inodos, 204, 1);
+
+    int bloqueTraducido3 = traducir_bloque_inodo(&inodos, 30004, 1);
+
+    int bloqueTraducido4 = traducir_bloque_inodo(&inodos, 400004, 1);
+
+    int bloqueTraducido5 = traducir_bloque_inodo(&inodos, 468750, 1);
+
+    printf("DATOS DEL INODO RESERVADO 1\n");
+    // Sacamos los tiempos
+    struct tm *ts;
+    char atime[80];
+    char mtime[80];
+    char ctime[80];
+
+    ts = localtime(&inodos.atime);
+    strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", ts);
+    ts = localtime(&inodos.mtime);
+    strftime(mtime, sizeof(mtime), "%a %Y-%m-%d %H:%M:%S", ts);
+    ts = localtime(&inodos.ctime);
+    strftime(ctime, sizeof(ctime), "%a %Y-%m-%d %H:%M:%S", ts);
+
+    if (leer_inodo(posInodoReservado, &inodos) == FALLO) //
+    {
+        fprintf(stderr, "Error al leer el inodo en leer_sf.c .\n");
+        return FALLO;
+    }
+
+    printf("tipo: %c \n", inodos.tipo);
+    printf("permisos %hhu \n", inodos.permisos);
+    printf("atime: %s \nmtime: %s \nctime: %s\n", atime, mtime, ctime); // Imprimimos los tiempos
+    printf("nlinks: %d \n", inodos.nlinks);
+    printf("tamEnBytesLog: %d \n", inodos.tamEnBytesLog);
+    printf("numBloquesOcupados: %d \n\n", inodos.numBloquesOcupados);
+    printf("SB.posPrimerInodoLibre = %d \n", SB.posPrimerInodoLibre);
+
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
     {

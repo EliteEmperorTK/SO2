@@ -62,100 +62,156 @@ int initSB(unsigned int nbloques, unsigned int ninodos)
     return EXITO;
 }
 
+int block_size(int bytes)
+{
+    return (bytes + BLOCKSIZE - 1) / BLOCKSIZE;
+}
+
 // Inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos.
 int initMB()
 { // Mapa de bits
     struct superbloque SB;
-    if (bread(posSB, &SB) == FALLO)
+
+    // Leer el superbloque para obtener información relevante
+    if (bread(posSB, &SB) < 0)
     {
         fprintf(stderr, "Error al leer el superbloque en el disco.\n");
         return FALLO;
     }
 
-    // posicion del bloque de mapa de bits
-    int posBloqueMB = SB.posPrimerBloqueMB;
+    // Calcular el tamaño de los metadatos en bloques
+    const int metadata_block_size = tamMB(SB.totBloques) + tamAI(SB.totInodos) + tamSB;
 
-    // numero de bloques que ocupan los metadatos
-    int nBloquesMD = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
+    // Calcular el tamaño del mapa de bits necesario en bytes
+    const int metadata_bytes = metadata_block_size / 8;
+    const int metadata_extra_bits = metadata_block_size % 8;
 
-    // actualizo los bloques libres en el MB
-    SB.cantBloquesLibres -= nBloquesMD;
+    // Calcular el tamaño del bloque del mapa de bits y el tamaño total en bytes
+    const int bitmap_block_size = block_size(metadata_bytes + (metadata_extra_bits > 0));
+    const int bitmap_byte_size = bitmap_block_size * BLOCKSIZE;
 
-    int nBloquesOcupan = nBloquesMD / 8 / BLOCKSIZE;
+    // Crear un buffer para almacenar el mapa de bits en memoria
+    unsigned char bitmap[bitmap_byte_size];
 
-    unsigned char bufferMB[BLOCKSIZE];
+    // Llenar los bytes correspondientes a los metadatos con 1s
+    memset(bitmap, 255, metadata_bytes);
 
-    //// Marcar como ocupados los bloques que ocupan los metadatos
-    while (nBloquesOcupan > 0)
+    // Llenar el último byte parcial con 1s y 0s según los bits restantes de los metadatos
+    memset(bitmap + metadata_bytes + 1, 0, bitmap_byte_size - metadata_bytes);
+    bitmap[metadata_bytes] = 255 << (8 - metadata_extra_bits);
+
+    // Escribir el mapa de bits en el disco
+    for (int i = 0; i < bitmap_block_size; ++i)
     {
-        memset(bufferMB, 255, BLOCKSIZE);
-        nBloquesOcupan--;
-
-        // Escribir el bloque en el dispositivo
-        if (bwrite(posBloqueMB, bufferMB) == FALLO)
+        if (bwrite(SB.posPrimerBloqueMB + i, &bitmap[i * BLOCKSIZE]) < 0)
         {
-            fprintf(stderr, "Error al escribir en el bloque %d.\n", posBloqueMB);
             return FALLO;
         }
-        posBloqueMB++;
     }
 
-    // Marcar los bits adicionales en el último bloque
-    memset(bufferMB, 0, sizeof(bufferMB));
+    // Actualizar la cantidad de bloques libres en el superbloque
+    SB.cantBloquesLibres -= metadata_block_size;
 
-    int i;
-    for (i = 0; i <= (nBloquesMD / 8) - 1; i++)
-    {
-        bufferMB[i] = 255;
-    }
-    int bitsExtra = nBloquesMD % 8;
-    switch (bitsExtra)
-    {
-    case 1:
-        bufferMB[nBloquesMD / 8] = 128;
-        break;
-    case 2:
-        bufferMB[nBloquesMD / 8] = 192;
-        break;
-    case 3:
-        bufferMB[nBloquesMD / 8] = 224;
-        break;
-    case 4:
-        bufferMB[nBloquesMD / 8] = 240;
-        break;
-    case 5:
-        bufferMB[nBloquesMD / 8] = 248;
-        break;
-    case 6:
-        bufferMB[nBloquesMD / 8] = 252;
-        break;
-    case 7:
-        bufferMB[nBloquesMD / 8] = 254;
-        break;
+    // Escribir el superbloque actualizado en el disco
+    return bwrite(posSB, &SB);
 
-    default:
-        break;
-    }
-    for (int j = i + 1; j <= BLOCKSIZE - 1; j++)
-    {
-        bufferMB[j] = 0;
-    }
+    /*
+        struct superbloque SB;
+        if (bread(posSB, &SB) == FALLO)
+        {
+            fprintf(stderr, "Error al leer el superbloque en el disco.\n");
+            return FALLO;
+        }
 
-    // Escribir el último bloque del mapa de bits
-    if (bwrite(posBloqueMB, bufferMB) == FALLO)
-    {
-        fprintf(stderr, "Error al escribir el último bloque del mapa de bits en el disco.\n");
-        return FALLO;
-    }
+        // posicion del bloque de mapa de bits
+        int posBloqueMB = SB.posPrimerBloqueMB;
 
-    // Actualizar el superbloque
-    if (bwrite(posSB, &SB) == FALLO)
-    {
-        fprintf(stderr, "Error al actualizar el superbloque en el disco.\n");
-        return FALLO;
-    }
+        // numero de bloques que ocupan los metadatos
+        int nBloquesMD = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
 
-    return EXITO;
+        int bytesTotales = nBloquesMD / 8;
+        int bitsSobrantes = nBloquesMD % 8;
+
+        //int nBloquesOcupan = nBloquesMD /8 / BLOCKSIZE;/////////////////
+        int nBloquesOcupan = (bytesTotales + bitsSobrantes) * BLOCKSIZE;
+
+        unsigned char bufferMB[BLOCKSIZE];
+
+        //// Marcar como ocupados los bloques que ocupan los metadatos
+        while (nBloquesOcupan > 0)
+        {
+            memset(bufferMB, 255, BLOCKSIZE);
+            nBloquesOcupan--;
+
+            // Escribir el bloque en el dispositivo
+            if (bwrite(posBloqueMB, bufferMB) == FALLO)
+            {
+                fprintf(stderr, "Error al escribir en el bloque %d.\n", posBloqueMB);
+                return FALLO;
+            }
+            posBloqueMB++;
+        }
+
+        // Marcar los bits adicionales en el último bloque
+        memset(bufferMB, 0, sizeof(bufferMB));
+
+        int i;
+        for (i = 0; i <= (nBloquesMD / 8) - 1; i++)
+        {
+            bufferMB[i] = 255;
+        }
+        int bitsExtra = nBloquesMD % 8;
+        switch (bitsExtra)
+        {
+        case 1:
+            bufferMB[nBloquesMD / 8] = 128;
+            break;
+        case 2:
+            bufferMB[nBloquesMD / 8] = 192;
+            break;
+        case 3:
+            bufferMB[nBloquesMD / 8] = 224;
+            break;
+        case 4:
+            bufferMB[nBloquesMD / 8] = 240;
+            break;
+        case 5:
+            bufferMB[nBloquesMD / 8] = 248;
+            break;
+        case 6:
+            bufferMB[nBloquesMD / 8] = 252;
+            break;
+        case 7:
+            bufferMB[nBloquesMD / 8] = 254;
+            break;
+
+        default:
+            break;
+        }
+        for (int j = i + 1; j <= BLOCKSIZE - 1; j++)
+        {
+            bufferMB[j] = 0;
+        }
+
+            // Escribir el último bloque del mapa de bits
+        if (bwrite(posBloqueMB, bufferMB) == FALLO)
+        {
+            fprintf(stderr, "Error al escribir el último bloque del mapa de bits en el disco.\n");
+            return FALLO;
+        }
+
+        // Actualizamos los bloques libres en el MB
+        SB.cantBloquesLibres -= nBloquesMD;
+
+        // Actualizar el superbloque
+        if (bwrite(posSB, &SB) == FALLO)
+        {
+            fprintf(stderr, "Error al actualizar el superbloque en el disco.\n");
+            return FALLO;
+        }
+
+        return EXITO;
+        */
 }
 
 int initAI()
@@ -247,6 +303,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit)
 
 char leer_bit(unsigned int nbloque)
 {
+    // Leer el superbloque para obtener la localización del MB.
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
@@ -254,12 +311,22 @@ char leer_bit(unsigned int nbloque)
         return FALLO;
     }
 
-    unsigned char mascara = 128; // 10000000
+    // Calculamos qué byte, posbyte, contiene el bit que representa el bloque nbloque en el MB, y luego la posición del bit dentro de ese byte, posbit
     int posbyte = nbloque / 8;
     int posbit = nbloque % 8;
-    unsigned char bufferMB[BLOCKSIZE];
+
+    // Hemos de determinar luego en qué bloque del MB, nbloqueMB, se halla ese byte :
     int nbloqueMB = posbyte / BLOCKSIZE;
+
+    // para BufferMB
+    posbyte = posbyte % BLOCKSIZE;
+
+    unsigned char mascara = 128; // 10000000
+    unsigned char bufferMB[BLOCKSIZE];
+
+    // posición absoluta del dispositivo virtual se encuentra ese bloque, nbloqueabs, donde leer/escribir el bit:
     int nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
+
     if (bread(nbloqueabs, bufferMB) == FALLO)
     {
         fprintf(stderr, "Error al leer el bloque de datos en el disco.\n");
@@ -527,7 +594,6 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
     return posInodoReservado; // La posición es relativa al Array de Inodos, no a la posición absoluta de todos los bloques
 }
 
-////////////////////////////////////////////////////////////////////////////////////
 int obtener_nRangoBL(struct inodo *inodos, unsigned int nblogico, unsigned int *ptr)
 { // Devolvemos el nrangoBL
 
@@ -627,6 +693,7 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
             else
             {                            // reservar bloques de punteros y crear enlaces desde el  inodo hasta el bloque de datos
                 ptr = reservar_bloque(); // de punteros
+                printf("[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n", nivel_punteros, ptr, ptr, (nivel_punteros + 1));
                 if (ptr == FALLO)
                 { // Sobreescribimos los cambios realizados en el superbloque
                     perror(RED "Error al intentar reservar el bloque en traducir_bloque_inodo." RESET);
@@ -667,6 +734,7 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
         }
         ptr_ant = ptr;        // guardamos el puntero actual
         ptr = buffer[indice]; // y lo desplazamos al siguiente nivel
+        printf("[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n", nivel_punteros, ptr, ptr, (nivel_punteros + 1));
         nivel_punteros--;
     } // al salir de este bucle ya estamos al nivel de datos
 
@@ -679,6 +747,7 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
         else
         {
             ptr = reservar_bloque(); // de datos
+            printf("[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n", nivel_punteros, ptr, ptr, (nivel_punteros + 1));
             if (ptr == FALLO)
             {
                 perror(RED "Error al reservar el bloque en traducir_bloque_inodo." RESET);
@@ -693,7 +762,7 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
             else
             {
                 buffer[indice] = ptr; // asignamos la dirección del bloque de datos en el buffer
-                if (bwrite(ptr_ant, buffer))
+                if (bwrite(ptr_ant, &buffer))
                 { // salvamos en el dispositivo el buffer de punteros modificado
                     perror(RED "Error al salvar en el dispositivo el buffer de punteros modificado en traducir_bloque_inodo");
                     return FALLO;
