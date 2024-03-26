@@ -184,18 +184,23 @@ int main(int argc, char **argv)
     }
 
     printf("\nINODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n");
+    printf("\n");
+    traducir_bloque_inodo(&inodos, 8, 1);
+    printf("\n");
 
-    int bloqueTraducido1 = traducir_bloque_inodo(&inodos, 8, 1);
+    traducir_bloque_inodo(&inodos, 204, 1);
+    printf("\n");
 
-    int bloqueTraducido2 = traducir_bloque_inodo(&inodos, 204, 1);
+    traducir_bloque_inodo(&inodos, 30004, 1);
+    printf("\n");
 
-    int bloqueTraducido3 = traducir_bloque_inodo(&inodos, 30004, 1);
+    traducir_bloque_inodo(&inodos, 400004, 1);
+    printf("\n");
 
-    int bloqueTraducido4 = traducir_bloque_inodo(&inodos, 400004, 1);
+    traducir_bloque_inodo(&inodos, 468750, 1);
+    printf("\n");
 
-    int bloqueTraducido5 = traducir_bloque_inodo(&inodos, 468750, 1);
-
-    printf("DATOS DEL INODO RESERVADO 1\n");
+    printf("\nDATOS DEL INODO RESERVADO 1\n");
     // Sacamos los tiempos
     struct tm *ts;
     char atime[80];
