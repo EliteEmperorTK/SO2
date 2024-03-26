@@ -671,6 +671,9 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
     unsigned int ptr_ant = 0;
 
     int nRangoBL = obtener_nRangoBL(inodos, nblogico, &ptr); // 0:D, 1:I0, 2:I1, 3:I2
+
+    ptr = 0; // =000000? porque cuando sale de la funcion se asigna -1480000 
+
     if (nRangoBL == FALLO)
     {
         perror(RED "Error al obtener el rango en traducir_bloque_inodo." RESET);
@@ -680,7 +683,7 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
 
     int indice = 0;
     unsigned int buffer[NPUNTEROS];
-
+    
     while (nivel_punteros > 0)
     { // iterar para cada nivel de punteros indirectos
 
@@ -701,10 +704,11 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
 
                 inodos->numBloquesOcupados++;
                 inodos->ctime = time(NULL); // fecha actual
-
+                
+                
                 if (nivel_punteros == nRangoBL)
                 { // el bloque cuelga directamente del inodo
-                    printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n" RESET, (nivel_punteros - 1), ptr, ptr, nivel_punteros);
+                    //printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n" RESET, (nivel_punteros - 1), ptr, ptr, nivel_punteros);
                     inodos->punterosIndirectos[nRangoBL - 1] = ptr;
                 }
                 else
@@ -727,6 +731,7 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
                 return FALLO;
             }
         }
+        
         indice = obtener_indice(nblogico, nivel_punteros);
         if (indice == FALLO)
         {
@@ -735,12 +740,9 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
         }
         ptr_ant = ptr;        // guardamos el puntero actual
         ptr = buffer[indice]; // y lo desplazamos al siguiente nivel
+        //siempre que sale de acá vale 0, esta bien?
 
-        // aca va el punteros inderectos
-        if (nivel_punteros > 1)
-        {
-            printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %d (reservado BF %d para punteros_nivel%d)]\n" RESET, nivel_punteros, indice, ptr_ant, ptr_ant, (nivel_punteros - 1));
-        }
+        //printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %d (reservado BF %d para punteros_nivel%d)]\n" RESET, nivel_punteros, indice, ptr_ant, ptr_ant, (nivel_punteros - 1));
 
         nivel_punteros--;
     } // al salir de este bucle ya estamos al nivel de datos
@@ -762,17 +764,18 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
             }
             inodos->numBloquesOcupados++;
             inodos->ctime = time(NULL);
+            
             if (nRangoBL == 0)
             { // si era un puntero Directo
-                printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%d] = %d (reservado BF %d para BL %d)]\n" RESET, nblogico, ptr, ptr, nblogico);
+                //printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosDirectos[%d] = %d (reservado BF %d para BL %d)]\n" RESET, nblogico, ptr, ptr, nblogico);
                 inodos->punterosDirectos[nblogico] = ptr; // asignamos la direción del bl. de datos en el inodo
             }
             else
             {
-                printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d[%d] = %d (reservado BF %d para BL %d)]\n" RESET, (nivel_punteros + 1), indice, ptr, ptr, nblogico);
+                //printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %d (reservado BF %d para BL %d)]\n" RESET, (nivel_punteros + 1), indice, ptr, ptr, nblogico);
 
                 buffer[indice] = ptr; // asignamos la dirección del bloque de datos en el buffer
-                if (bwrite(ptr_ant, &buffer) == FALLO)
+                if (bwrite(ptr_ant, buffer) == FALLO)
                 { // salvamos en el dispositivo el buffer de punteros modificado
                     perror(RED "Error al salvar en el dispositivo el buffer de punteros modificado en traducir_bloque_inodo" RESET);
                     return FALLO;
