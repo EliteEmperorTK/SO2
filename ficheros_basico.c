@@ -786,3 +786,130 @@ int traducir_bloque_inodo(struct inodo *inodos, unsigned int nblogico, unsigned 
     // mi_write_f() se encargará de salvar los cambios del inodo en disco
     return ptr; // nº de bloque físico correspondiente al bloque de datos lógico, nblogico
 }
+
+
+int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){ //Devuelve la cantidad de Bytes escritos (debería devolver nbytes si ha ido bien)
+    
+    int cant_bytes;
+    struct inodo inodos;
+    leer_inodo(ninodo,&inodos); //Leemos el inodo
+
+    if ((inodos.permisos & 2) != 2) {
+       fprintf(stderr, RED "Error en mi_write_f: No hay permisos de escritura\n" RESET);
+       return FALLO;
+    }
+
+    int primerBL = offset / BLOCKSIZE;                  //Primer bloque lógico donde escribimos
+    int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;   //Último bloque lógico donde escribimos
+    int desp1 = offset % BLOCKSIZE;                     //Desplazamiento con el offset
+    int desp2 = (offset + nbytes - 1) % BLOCKSIZE;      //Desplazamiento nbytes después del offset
+
+
+    int nbfisico = traducir_bloque_inodo(&inodos, primerBL, 1); //Encontramos la posición real (común en ambos casos)
+    if(nbfisico == FALLO){
+
+    }
+
+    unsigned char buf_bloque[BLOCKSIZE];
+    if(bread(nbfisico,buf_bloque) == FALLO){ //Leemos el bloque y lo metemos en un buffer (común en ambos casos)
+
+    }
+    
+    //2 Casos
+    if(primerBL == ultimoBL){ //Caso 1 (Escritura en 1 solo bloque)
+
+        if(memcpy(buf_bloque + desp1, buf_original, nbytes) == FALLO){ //Escribimos nbytes del buf_original en la posición (buf_bloque + desp1)
+
+        }
+
+        cant_bytes = bwrite(nbfisico,buf_bloque); //Escribimos lo del buffer donde toca
+        if(cant_bytes == FALLO){
+
+        }
+
+
+    } else{ //Caso 2 (Escritura en más de 1 bloque)
+
+        //Fase 1: Escribimos el primer blque
+        if(memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE-desp1) == FALLO){
+
+        }
+
+        cant_bytes = bwrite(nbfisico,buf_bloque); //Escribimos lo del buffer donde toca
+        if(cant_bytes == FALLO){
+
+        }
+
+        //Fase 2: Escribimos los bloques intermedios
+        
+        for(int bl = primerBL+1; bl < ultimoBL; bl++){  /////////////////////////LA CONDICIÓN PODRÍA ESTAR MAL (no creo).  //Recorremos todos menos el último/////////////////////////
+                               //////////////////////EL -1 DEL BWRITE PODRÍA SOBRAR (AUNQUE LO PONE LA MAESTRA)//////////////////////////////////////////////////////
+
+            nbfisico = traducir_bloque_inodo(&inodos,bl,1); //Obtenemos la posición del nuevo bloque
+            if(nbfisico == FALLO){
+
+            }
+
+            int aux = bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (bl - primerBL - 1) * BLOCKSIZE); //Escribimos el bloque nº bl entero
+            if(aux == FALLO){
+
+                break;
+            }
+
+            cant_bytes += aux; //Aumentamos la cantidad de bytes escritos
+        }
+
+        //Fase 3: Escribimos el último bloque
+        nbfisico = traducir_bloque_inodo(&inodos,ultimoBL,1); //Obtenemos la posición del nuevo bloque
+        if(nbfisico == FALLO){
+
+        }
+        
+        if(bread(nbfisico,buf_bloque) == FALLO){ //Leemos el bloque y lo metemos en un buffer
+
+        }
+
+        if(memcpy(buf_bloque, buf_original + (nbytes - (desp2 + 1)), desp2 + 1) == FALLO){ //Escribimos los bytes correspondientes en buf_bloque
+
+        }
+
+        int aux = bwrite(nbfisico, buf_bloque);
+        if(aux == FALLO){
+
+        }
+        cant_bytes += aux;
+    }
+
+    //Actualizamos la información del inodo
+    if(inodos.tamEnBytesLog < offset + cant_bytes){ //Si hemos escrito más allá del tamEnBytesLog, lo actualizamos como nuevo tamaño máximo. /////////////////PODRÍA ESTAR MAL //////////////////////////
+        inodos.tamEnBytesLog = offset + cant_bytes;
+    }
+    inodos.ctime = time(NULL); //hora actual
+    inodos.mtime = time(NULL);
+
+    if(escribir_inodo(ninodo, &inodos) == FALLO){ //Escribimos el inodo actualizado
+
+    }
+    return cant_bytes;
+}
+
+
+
+int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
+
+
+}
+
+
+
+int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
+
+}
+
+
+
+int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
+
+}
+
+
