@@ -79,8 +79,3 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos);
 int obtener_nRangoBL(struct inodo *inodos, unsigned int nblogico, unsigned int *ptr);
 int obtener_indice(unsigned int nblogico, int nivel_punteros);
 int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned char reservar);
-
-int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes);
-int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes);
-//int mi_stat_f(unsigned int ninodo, struct STAT *p_stat);
-//int mi_chmod_f(unsigned int ninodo, unsigned char permisos);
