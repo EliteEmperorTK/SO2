@@ -280,3 +280,52 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
 
     return 0; // Éxito
 }
+
+
+
+int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
+
+    int bloq_liber;
+    int primerBL;           //Bloque lógico desde el cual empezamos a liberar
+    struct inodo inodos;
+
+    if(leer_inodo(ninodo,&inodos) == FALLO){ //Leemos el inodo a truncar
+
+    }
+
+
+    if(!(inodos.permisos & 2)){ //Comprobamos si tiene permisos de escritura (entra si no tiene)
+
+    }
+
+
+    if(nbytes > inodos.tamEnBytesLog){  //No podemos truncar más allá del EOF, por tanto
+        nbytes = inodos.tamEnBytesLog;  //hacemos que nbytes sea el EOF
+    }
+
+
+    if((nbytes % BLOCKSIZE) == 0){ //Comprobamos cuál debe ser el primer bloque lógico
+        primerBL = nbytes/BLOCKSIZE;
+
+    }else{ 
+        primerBL = nbytes/BLOCKSIZE + 1;
+    }
+
+
+    bloq_liber = liberar_bloques_inodo(primerBL,&inodos); //Utilizamos la función liberar bloques inodo
+    if( bloq_liber == FALLO){
+
+    }
+
+
+    //Actualizamos la información del inodo y lo escribimos
+    inodos.ctime = time(NULL); //hora actual
+    inodos.mtime = time(NULL);
+    inodos.tamEnBytesLog = nbytes;
+    inodos.numBloquesOcupados -= bloq_liber; //Restamos los bloques liberados al total de bloques ocupados
+
+    if(escribir_inodo(ninodo, &inodos) == FALLO){ //Guardamos el inodo
+
+    }
+}
+
