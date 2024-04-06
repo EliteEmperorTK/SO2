@@ -290,12 +290,14 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     struct inodo inodos;
 
     if(leer_inodo(ninodo,&inodos) == FALLO){ //Leemos el inodo a truncar
-
+        perror(RED "Error al leer el inodo en mi_truncar_f." RESET);
+        return FALLO;
     }
 
 
     if(!(inodos.permisos & 2)){ //Comprobamos si tiene permisos de escritura (entra si no tiene)
-
+        perror(RED "El inodo no tiene permisos de escritura en mi_truncar_f." RESET);
+        return FALLO;
     }
 
 
@@ -313,8 +315,9 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
 
 
     bloq_liber = liberar_bloques_inodo(primerBL,&inodos); //Utilizamos la función liberar bloques inodo
-    if( bloq_liber == FALLO){
-
+    if(bloq_liber == FALLO){
+        perror(RED "Error al liberar los bloques del inodo en mi_truncar_f." RESET);
+        return FALLO;
     }
 
 
@@ -325,7 +328,8 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
     inodos.numBloquesOcupados -= bloq_liber; //Restamos los bloques liberados al total de bloques ocupados
 
     if(escribir_inodo(ninodo, &inodos) == FALLO){ //Guardamos el inodo
-
+        perror(RED "Error al escribir el inodo en mi_truncar_f." RESET);
+        return FALLO;
     }
 }
 

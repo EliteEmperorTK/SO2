@@ -791,12 +791,14 @@ int liberar_inodo(unsigned int ninodo){
     struct inodo inodos;
 
     if(leer_inodo(ninodo,&inodos) == FALLO){ //Leemos el inodo indicado por parámetro
-
+        perror(RED "Error al leer el inodo en liberar_inodo." RESET);
+        return FALLO;
     }
 
     int bloq_liber = liberar_bloques_inodo(0,&inodos); //Liberamos todos los bloques del inodo (primerBL = 0 porque los liberamos todos [empezamos desde el primer bloque])
     if(bloq_liber == FALLO){
-
+        perror(RED "Error al liberar los bloques en liberar_inodo." RESET);
+        return FALLO;
     }
 
     inodos.numBloquesOcupados -= bloq_liber; //Restamos los bloques liberados del inodo. Debería ser 0 siempre.
@@ -809,7 +811,8 @@ int liberar_inodo(unsigned int ninodo){
     struct superbloque SB;
 
     if(bread(posSB,&SB) == FALLO){ //Leemos el superbloque
-
+        perror(RED "Error al leer el superbloque en liberar_inodo." RESET);
+        return FALLO;
     }
 
     inodos.punterosDirectos[0] = SB.posPrimerInodoLibre; //Apuntamos al SB.posPrimerInodoLibre anterior
@@ -818,12 +821,15 @@ int liberar_inodo(unsigned int ninodo){
     SB.cantInodosLibres++;
 
     if(bwrite(posSB,&SB) == FALLO){ //Escribimos el superbloque
-
+        perror(RED "Error al escribir el superbloque en liberar_inodo." RESET);
+        return FALLO;
     }
+
 
     inodos.ctime = time(NULL); //Actualizamos el ctime
     if(escribir_inodo(ninodo,&inodos) == FALLO){ //Escribimos el inodo liberado
-
+        perror(RED "Error al escribir el inodo en liberar_inodo." RESET);
+        return FALLO;
     }
 
     return SB.posPrimerInodoLibre; //Devolvemos el número de inodo liberado
@@ -866,7 +872,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
         nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr); //0:D, 1:I0, 2:I1, 3:I2
 
         if(nRangoBL == FALLO){
-
+            perror(RED "Error al obtener el nRangoBL en liberar_bloques_inodo." RESET);
+            return FALLO;
         }
 
         nivel_punteros = nRangoBL; //el nivel_punteros +alto cuelga del inodo
@@ -876,7 +883,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
             indice = obtener_indice(nBL, nivel_punteros);
 
             if(indice == FALLO){
-
+                perror(RED "Error al obtener el indice en liberar_bloques_inodo." RESET);
+                return FALLO;
             }
 
             if(indice == 0  || nBL == primerBL){
@@ -892,7 +900,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
 
         if(ptr > 0){ //si existe bloque de datos
             if(liberar_bloque(ptr) == FALLO){  //de datos
-            
+                perror(RED "Error al liberar el bloque apuntado por ptr 1 en liberar_bloques_inodo." RESET);
+                return FALLO;
             }
 
             liberados++;
@@ -910,7 +919,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
 
                     //No cuelgan más bloques ocupados, hay que liberar el bloque de punteros
                         if(liberar_bloque(ptr) == FALLO){ //Liberamos el bloque de punteros
-
+                            perror(RED "Error al liberar el bloque apuntado por ptr 2 en liberar_bloques_inodo." RESET);
+                            return FALLO;
                         }
                         liberados++;
 
@@ -925,7 +935,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
 
                     }else{  //escribimos en el dispositivo el bloque de punteros modificado
                         if(bwrite(ptr, bloques_punteros[nivel_punteros - 1]) == FALLO){
-
+                            perror(RED "Error al escribir el bloque en liberar_bloques_inodo." RESET);
+                            return FALLO;
                         }
                         // hemos de salir del bucle ya que no será necesario liberar los bloques de niveles
                         // superiores de los que cuelga
