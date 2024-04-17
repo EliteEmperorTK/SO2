@@ -173,7 +173,7 @@ int main(int argc, char **argv)
     //////////////
     // NIVEL 4  //
     //////////////
-
+    /*
     int posInodoReservado = reservar_inodo('f', 6);
 
     struct inodo inodos;
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 
     printf("\nINODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n");
     printf("\n");
-    
+
     traducir_bloque_inodo(&inodos, 8, 1);
     printf("\n");
 
@@ -228,6 +228,7 @@ int main(int argc, char **argv)
     printf("tamEnBytesLog: %d \n", inodos.tamEnBytesLog);
     printf("numBloquesOcupados: %d \n\n", inodos.numBloquesOcupados);
     printf("SB.posPrimerInodoLibre = %d \n", SB.posPrimerInodoLibre);
+    */
 
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
