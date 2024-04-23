@@ -26,23 +26,64 @@ int main(int args, char **argv)
         return -1;
     }
     struct STAT stats;
-    int nInodo = reservar_inodo('f', 6);
-    printf("longitud texto: %d\n", lon);
     int bytesEscritos = 0;
-    for (int i = 0; i < 5; i++)
+    int nInodo = 0;
+
+    printf("longitud texto: %d\n", lon);
+
+    if (diferentes_inodos == 0)
+    { // solo un inodo
+        nInodo = reservar_inodo('f', 6);
+        if (nInodo < 0)
+        {
+            perror(RED "Error al reservar inodo" RESET);
+            return FALLO;
+        }
+        for (int i = 0; i < 5; i++)
+        {
+            printf("\nNº inodo reservado: %d\n", nInodo);
+            printf("offset: %d\n", OFFSETS[i]);
+            if ((bytesEscritos = mi_write_f(nInodo, fichero, OFFSETS[i], lon)) < 0)
+            {
+                perror(RED "Error de escritura\n" RESET);
+                return FALLO;
+            }
+            printf("Bytes escritos: %d\n", bytesEscritos);
+            if (mi_stat_f(nInodo, &stats) < 0)
+            {
+                perror(RED "Error de lectura de STAT\n" RESET);
+                return FALLO;
+            }
+            printf("stat.tamEnBytesLog= %d\n", stats.tamEnBytesLog);
+            printf("stat.numBloquesOcupados= %d\n", stats.numBloquesOcupados);
+        }
+    }
+    else // multiples inodos
     {
-        if (diferentes_inodos != 0)
+        for (int i = 0; i < 5; i++)
         {
             nInodo = reservar_inodo('f', 6);
+            if (nInodo < 0)
+            {
+                perror(RED "Error al reservar inodo" RESET);
+                return FALLO;
+            }
+            printf("\nNº inodo reservado: %d\n", nInodo);
+            printf("offset: %d\n", OFFSETS[i]);
+            if ((bytesEscritos = mi_write_f(nInodo, fichero, OFFSETS[i], lon)) < 0)
+            {
+                perror(RED "Error de escritura\n" RESET);
+                return FALLO;
+            }
+            printf("Bytes escritos: %d\n", bytesEscritos);
+            if (mi_stat_f(nInodo, &stats) < 0)
+            {
+                perror(RED "Error de lectura de STAT\n" RESET);
+                return FALLO;
+            }
+            printf("stat.tamEnBytesLog= %d\n", stats.tamEnBytesLog);
+            printf("stat.numBloquesOcupados= %d\n", stats.numBloquesOcupados);
         }
-        printf("\nNº inodo reservado: %d\n", nInodo);
-        printf("offset: %d\n", OFFSETS[i]);
-        bytesEscritos = mi_write_f(nInodo, fichero, OFFSETS[i], lon);
-        memset(buffer, 0, lon);
-        mi_stat_f(nInodo, &stats);
-        printf("Bytes escritos: %d\n", bytesEscritos);
-        printf("stat.tamEnBytesLog= %d\n", stats.tamEnBytesLog);
-        printf("stat.numBloquesOcupados= %d\n", stats.numBloquesOcupados);
     }
     if (bumount() == FALLO)
     {

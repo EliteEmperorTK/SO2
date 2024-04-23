@@ -575,9 +575,10 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
     return posInodoReservado; // La posición es relativa al Array de Inodos, no a la posición absoluta de todos los bloques
 }
 
-// nivel 4
+// NIVEL 4
 
-// bien // Devolvemos el nrangoBL
+// bien
+// Devolvemos el nrangoBL
 int obtener_nRangoBL(struct inodo *inodos, unsigned int nblogico, unsigned int *ptr)
 {
 
@@ -609,7 +610,8 @@ int obtener_nRangoBL(struct inodo *inodos, unsigned int nblogico, unsigned int *
     }
 }
 
-// bien // Devolvemos el índice
+// bien
+// Devolvemos el índice
 int obtener_indice(unsigned int nblogico, int nivel_punteros)
 {
     if (nblogico < DIRECTOS)
@@ -649,7 +651,6 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros)
     return FALLO; // Si no se ha encontrado, devolvemos FALLO
 }
 
-// bien pero  reviasr una cosa faltaria algo de salvar inodo mas adelante
 int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned char reservar)
 {
     // Inicializamos las variables
@@ -767,28 +768,28 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
     return ptr; // nº de bloque físico correspondiente al bloque de datos lógico, nblogico
 }
 
-// nivel 6 hasta aca
-
+// NIVEL 6
+// bien
 int liberar_inodo(unsigned int ninodo)
 {
-    struct inodo inodos;
-    if (leer_inodo(ninodo, &inodos) == FALLO)
+    struct inodo inodo;
+    if (leer_inodo(ninodo, &inodo) == FALLO)
     { // Leemos el inodo indicado por parámetro
         perror(RED "Error al leer el inodo en liberar_inodo." RESET);
         return FALLO;
     }
 
-    int bloq_liber = liberar_bloques_inodo(0, &inodos); // Liberamos todos los bloques del inodo (primerBL = 0 porque los liberamos todos [empezamos desde el primer bloque])
+    int bloq_liber = liberar_bloques_inodo(0, &inodo); // Liberamos todos los bloques del inodo (primerBL = 0 porque los liberamos todos [empezamos desde el primer bloque])
     if (bloq_liber == FALLO)
     {
         perror(RED "Error al liberar los bloques en liberar_inodo." RESET);
         return FALLO;
     }
 
-    inodos.numBloquesOcupados -= bloq_liber; // Restamos los bloques liberados del inodo. Debería ser 0 siempre.
+    inodo.numBloquesOcupados -= bloq_liber; // Restamos los bloques liberados del inodo. Debería ser 0 siempre.
 
-    inodos.tamEnBytesLog = 0;
-    inodos.tipo = 'l';
+    inodo.tamEnBytesLog = 0;
+    inodo.tipo = 'l';
 
     // Actualizamos la lista enlazada de inodos libres
     struct superbloque SB;
@@ -798,7 +799,7 @@ int liberar_inodo(unsigned int ninodo)
         return FALLO;
     }
 
-    inodos.punterosDirectos[0] = SB.posPrimerInodoLibre; // Apuntamos al SB.posPrimerInodoLibre anterior
+    inodo.punterosDirectos[0] = SB.posPrimerInodoLibre; // Apuntamos al SB.posPrimerInodoLibre anterior
     SB.posPrimerInodoLibre = ninodo;
 
     SB.cantInodosLibres++;
@@ -809,25 +810,26 @@ int liberar_inodo(unsigned int ninodo)
         return FALLO;
     }
 
-    inodos.ctime = time(NULL); // Actualizamos el ctime
-    if (escribir_inodo(ninodo, &inodos) == FALLO)
+    inodo.ctime = time(NULL); // Actualizamos el ctime
+    if (escribir_inodo(ninodo, &inodo) == FALLO)
     { // Escribimos el inodo liberado
         perror(RED "Error al escribir el inodo en liberar_inodo." RESET);
         return FALLO;
     }
 
-    return SB.posPrimerInodoLibre; // Devolvemos el número de inodo liberado
+    return ninodo; // Devolvemos el número de inodo liberado
 }
 
+// bien
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
 {
     // libera los bloques de datos e índices iterando desde el primer bloque lógico a liberar hasta el último
     // por tanto explora las ramificaciones de punteros desde las hojas hacia la raíz en el inodo
 
-    int nivel_punteros, indice = 0;
+    int nivel_punteros = 0, indice = 0;
     unsigned int ptr = 0;
-    unsigned int nBL, ultimoBL;
-    int nRangoBL;
+    unsigned int nBL = 0, ultimoBL = 0;
+    int nRangoBL = 0;
     unsigned int bloques_punteros[3][NPUNTEROS]; // array de bloques de punteros
     unsigned int bufAux_punteros[NPUNTEROS];     // para llenar de 0s y comparar
     int ptr_nivel[3];                            // punteros a bloques de punteros de cada nivel
@@ -835,7 +837,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
     int liberados = 0;                           // nº de bloques liberados
 
     if (inodo->tamEnBytesLog == 0)
-    { // el fichero está vacío
+    { // el fichero está vacío -> devolvemos 0
         return liberados;
     }
 
@@ -850,8 +852,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
     }
 
     memset(bufAux_punteros, 0, BLOCKSIZE);
-
-    for (nBL = primerBL; nBL == ultimoBL; nBL++)
+    printf(GRAY "[liberar_bloques_inodo()→ primer BL: %d, último BL: %d]\n", primerBL, ultimoBL);
+    for (nBL = primerBL; nBL <= ultimoBL; nBL++)
     { // recorrido BLs
 
         nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr); // 0:D, 1:I0, 2:I1, 3:I2
@@ -893,8 +895,9 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
                 perror(RED "Error al liberar el bloque apuntado por ptr 1 en liberar_bloques_inodo." RESET);
                 return FALLO;
             }
-
             liberados++;
+
+            printf(GRAY "[liberar_bloques_inodo()→ liberado BF %d de datos para BL: %d]\n", ptr, nBL);
             if (nRangoBL == 0)
             { // es un puntero Directo
                 inodo->punterosDirectos[nBL] = 0;
@@ -919,9 +922,8 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
                         }
                         liberados++;
 
-                        // Incluir mejora 1 saltando los bloques que no sea necesario explorar
-                        // al eliminar bloque de punteros
-                        //...
+                        printf(GRAY "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d correspondiente al BL: %d]\n", ptr, nivel_punteros, nBL);
+
                         if (nivel_punteros == nRangoBL)
                         {
                             inodo->punterosIndirectos[nRangoBL - 1] = 0;
@@ -943,11 +945,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
                 }
             }
         }
-        else
-        { // ptr = 0  --> el bloque no existe --> no lo exploramos
-          // Incluir mejora 2 saltando los bloques que no sea necesario explorar al valer 0 un puntero
-          // …
-        }
     }
+    printf(GRAY "liberados: %d\n", liberados);
     return liberados;
 }
