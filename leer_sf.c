@@ -20,7 +20,7 @@ int main(int argc, char **argv)
     if (argc != 2)
     {
         fprintf(stderr, "Uso: %s <nombre_dispositivo>\n", argv[0]);
-        exit(FALLO);
+        return FALLO;
     }
 
     const char *nombre_dispositivo = argv[1];
@@ -28,17 +28,17 @@ int main(int argc, char **argv)
     // Montar el dispositivo virtual
     if (bmount(nombre_dispositivo) == FALLO)
     {
-        fprintf(stderr, "Error al montar el dispositivo virtual.\n");
-        exit(FALLO);
+        perror(RED "Error al montar el dispositivo virtual.\n" RESET);
+        return FALLO;
     }
 
     // Leer el superbloque
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        fprintf(stderr, "Error al leer el superbloque.\n");
+        perror(RED "Error al leer el superbloque.\n" RESET);
         bumount();
-        exit(FALLO);
+        return FALLO;
     }
 
     // Mostrar los datos del superbloque
@@ -267,8 +267,8 @@ int main(int argc, char **argv)
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
     {
-        fprintf(stderr, "Error al desmontar el dispositivo virtual.\n");
-        exit(FALLO);
+        perror(RED "Error al desmontar el dispositivo virtual.\n" RESET);
+        return FALLO;
     }
 
     return EXITO;

@@ -9,21 +9,25 @@ int main(int args, char **argv)
         return FALLO;
     }
     if (bmount(argv[1]) == FALLO)
-    { //
+    {
         perror(RED "Error en leer.c al ejecutar bmount" RESET);
         return FALLO;
     }
+
+    struct STAT stat;
+
     int tamBuffer = 1500;                  // tamaño buffer
     unsigned char buffer_texto[tamBuffer]; // creamos el bufer
     memset(buffer_texto, 0, tamBuffer);    // asignamos todo a 0
+
     int ninodo = atoi(argv[2]);
+
     int totalLeidos = 0;
     int offset = 0;
     int leidos = 0;
-    struct STAT stat;
 
     leidos = mi_read_f(ninodo, buffer_texto, offset, tamBuffer); // leemos el inodo
-    while (leidos > 0)
+    while (leidos > 0) //De mientras pueda leerse, lo hacemos
     {
         write(1, buffer_texto, leidos);
         totalLeidos += leidos; // añadimos los bytes leídos al contador total de bytes leídos

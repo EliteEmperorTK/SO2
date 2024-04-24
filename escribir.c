@@ -5,10 +5,10 @@ int main(int args, char **argv)
     // Validación de argumentos
     if (args != 4)
     {
-        fprintf(stderr, RED "Sintaxis introducida incorrecta, sintaxis correcta: './escribir <nombre_dispositivo><"
+        perror(RED "Sintaxis introducida incorrecta, sintaxis correcta: './escribir <nombre_dispositivo><"
                             "$(cat fichero)"
                             "><diferentes_inodos>" RESET);
-        return -1;
+        return FALLO;
     }
     // Inicialización argumentos
     char *nombre_dispositivo = argv[1];
@@ -20,10 +20,10 @@ int main(int args, char **argv)
     // copia de fichero dado por parametro a buffer para manipulación
     strcpy(buffer, fichero);
     // montar dispositivo
-    if (bmount(nombre_dispositivo) == -1)
+    if (bmount(nombre_dispositivo) == FALLO)
     {
-        fprintf(stderr, RED "Error en escribir.c al ejecutar bmount()" RESET);
-        return -1;
+        perror(RED "Error en escribir.c al ejecutar bmount()" RESET);
+        return FALLO;
     }
     struct STAT stats;
     int bytesEscritos = 0;
@@ -31,25 +31,31 @@ int main(int args, char **argv)
 
     printf("longitud texto: %d\n", lon);
 
-    if (diferentes_inodos == 0)
-    { // solo un inodo
+    if (diferentes_inodos == 0) // Tan solo un inodo
+    {
         nInodo = reservar_inodo('f', 6);
-        if (nInodo < 0)
+        if (nInodo == FALLO)
         {
             perror(RED "Error al reservar inodo" RESET);
             return FALLO;
         }
-        for (int i = 0; i < 5; i++)
+        for (int idx = 0; idx <= 4; idx++)
         {
+            //Imprimimos la información correspondiente
             printf("\nNº inodo reservado: %d\n", nInodo);
-            printf("offset: %d\n", OFFSETS[i]);
-            if ((bytesEscritos = mi_write_f(nInodo, fichero, OFFSETS[i], lon)) < 0)
+
+            printf("offset: %d\n", OFFSETS[idx]);
+
+            bytesEscritos = mi_write_f(nInodo, fichero, OFFSETS[idx], lon);
+            if (bytesEscritos == FALLO)
             {
                 perror(RED "Error de escritura\n" RESET);
                 return FALLO;
             }
             printf("Bytes escritos: %d\n", bytesEscritos);
-            if (mi_stat_f(nInodo, &stats) < 0)
+
+
+            if (mi_stat_f(nInodo, &stats) == FALLO)
             {
                 perror(RED "Error de lectura de STAT\n" RESET);
                 return FALLO;
@@ -58,24 +64,31 @@ int main(int args, char **argv)
             printf("stat.numBloquesOcupados= %d\n", stats.numBloquesOcupados);
         }
     }
-    else // multiples inodos
+    else // Multiples inodos
     {
-        for (int i = 0; i < 5; i++)
+        for (int idx = 0; idx <= 4; idx++)
         {
+            //Imprimimos la información necesaria
             nInodo = reservar_inodo('f', 6);
-            if (nInodo < 0)
+            if (nInodo == FALLO)
             {
                 perror(RED "Error al reservar inodo" RESET);
                 return FALLO;
             }
             printf("\nNº inodo reservado: %d\n", nInodo);
-            printf("offset: %d\n", OFFSETS[i]);
-            if ((bytesEscritos = mi_write_f(nInodo, fichero, OFFSETS[i], lon)) < 0)
+
+            printf("offset: %d\n", OFFSETS[idx]);
+
+
+            bytesEscritos = mi_write_f(nInodo, fichero, OFFSETS[idx], lon);
+            if (bytesEscritos == FALLO)
             {
                 perror(RED "Error de escritura\n" RESET);
                 return FALLO;
             }
             printf("Bytes escritos: %d\n", bytesEscritos);
+
+
             if (mi_stat_f(nInodo, &stats) < 0)
             {
                 perror(RED "Error de lectura de STAT\n" RESET);
@@ -87,7 +100,7 @@ int main(int args, char **argv)
     }
     if (bumount() == FALLO)
     {
-        fprintf(stderr, RED "Error en escribir.c --> %d: %s\n" RESET, errno, strerror(errno));
-        return -1;
+        perror( RED "Error en escribir.c --> %d: %s\n" RESET);
+        return  FALLO;
     }
 }

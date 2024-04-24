@@ -130,8 +130,9 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
 
-    if (leer_inodo(ninodo, &inodo) < 0)
+    if (leer_inodo(ninodo, &inodo) == FALLO)
     {
+        perror(RED "Error al leer el inodo en mi_read_f" RESET);
         return FALLO;
     }
 
@@ -140,7 +141,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     if ((inodo.permisos & 4) != 4)
     {
         // El inodo no tiene permisos de lectura
-        fprintf(stderr, "El fichero no esta disponible en modo lectura");
+        perror(RED "El fichero no esta disponible en modo lectura" RESET);
         return FALLO;
     }
 
@@ -171,7 +172,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         {
             if (bread(nbfisico, buf_bloque) < 0)
             {
-                fprintf(stderr, "Lectura incorrecta del bloque fisico\n");
+                perror(RED "Lectura incorrecta del bloque fisico.\n" RESET);
                 return FALLO;
             }
             memcpy(buf_original, buf_bloque + desp1, nbytes);
@@ -186,9 +187,9 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 
         if (nbfisico > 0)
         {
-            if (bread(nbfisico, buf_bloque) < 0)
+            if (bread(nbfisico, buf_bloque) == FALLO)
             {
-                fprintf(stderr, "Lectura incorrecta\n");
+                perror(RED "Lectura incorrecta.\n" RESET);
                 return FALLO;
             }
             memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
@@ -201,9 +202,9 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             nbfisico = traducir_bloque_inodo(&inodo, bl, 0);
             if (nbfisico > 0)
             {
-                if (bread(nbfisico, buf_bloque) < 0)
+                if (bread(nbfisico, buf_bloque) == FALLO)
                 {
-                    fprintf(stderr, "Error de lectura\n");
+                    perror(RED "Error de lectura\n" RESET);
                     return FALLO;
                 }
                 memcpy(buf_original + cant_bytes, buf_bloque, BLOCKSIZE);
@@ -217,29 +218,34 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         if (nbfisico > 0)
         {
 
-            if (bread(nbfisico, buf_bloque) < 0)
+            if (bread(nbfisico, buf_bloque) == FALLO)
             {
-                fprintf(stderr, "Error de lectura\n");
+                perror(RED "Error de lectura\n" RESET);
                 return FALLO;
             }
             memcpy(buf_original + cant_bytes, buf_bloque, desp2 + 1);
         }
         cant_bytes += desp2 + 1;
     }
+
     // Actualizamos metadatos
-    if (leer_inodo(ninodo, &inodo) < 0)
+    if (leer_inodo(ninodo, &inodo) == FALLO)
     {
+        perror(RED "Error al leer el inodo en mi_read_f");
         return FALLO;
     }
+
     inodo.atime = time(NULL);
-    if (escribir_inodo(ninodo, &inodo) < 0)
+    
+    if (escribir_inodo(ninodo, &inodo) == FALLO)
     {
+        perror(RED "Error al escribir el inodo en mi_read_f");
         return FALLO;
     }
     return cant_bytes;
 }
 
-// bien
+
 int mi_stat_f(unsigned int ninodo, struct STAT *p_stat)
 {
     struct inodo inodo;
@@ -265,7 +271,6 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat)
     return EXITO; // Éxito
 }
 
-// bien
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
 {
     struct inodo inodo;

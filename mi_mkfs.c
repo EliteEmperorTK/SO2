@@ -5,69 +5,69 @@ int main(int argc, char **argv)
     if (argc != 3)
     {
         fprintf(stderr, "Uso: %s <nombre_dispositivo> <nbloques>\n", argv[0]);
-        exit(FALLO);
+        return FALLO;
     }
 
     const char *nombre_dispositivo = argv[1];
     unsigned int nbloques = atoi(argv[2]);
 
-    int descriptor = bmount(nombre_dispositivo);
+    int descriptor = bmount(nombre_dispositivo); //Montamos el dispositivo virtual
     if (descriptor == FALLO)
     {
-        fprintf(stderr, "Error al montar el dispositivo virtual.\n");
-        exit(FALLO);
+        perror(RED "Error al montar el dispositivo virtual.\n" RESET);
+        return FALLO;
     }
 
     // Inicializar a 0 el fichero utilizado como dispositivo virtual
     unsigned char buffer[BLOCKSIZE];
     memset(buffer, 0, BLOCKSIZE); // Inicializar el buffer a 0s
 
-    for (unsigned int i = 0; i < nbloques; i++)
+    for (unsigned int idx = 0; idx < nbloques; idx++)
     {
-        if (bwrite(i, buffer) == FALLO)
+        if (bwrite(idx, buffer) == FALLO)
         {
-            fprintf(stderr, "Error al escribir en el bloque %u.\n", i);
+            fprintf(stderr, "Error al escribir en el bloque %u.\n", idx);
             bumount();
-            exit(FALLO);
+            return FALLO;
         }
     }
 
     // Inicializar superbloque
     if (initSB(nbloques, nbloques / 4) == FALLO)
     {
-        fprintf(stderr, "Error al inicializar el superbloque.\n");
+        perror(RED "Error al inicializar el superbloque.\n" RESET);
         bumount();
-        exit(FALLO);
+        return FALLO;
     }
 
     // Inicializar mapa de bits
     if (initMB() == FALLO)
     {
-        fprintf(stderr, "Error al inicializar el mapa de bits.\n");
+        perror(RED "Error al inicializar el mapa de bits.\n" RESET);
         bumount();
-        exit(FALLO);
+        return FALLO;
     }
 
     // Inicializar array de inodos
     if (initAI() == FALLO)
     {
-        fprintf(stderr, "Error al inicializar el array de inodos.\n");
+        perror(RED "Error al inicializar el array de inodos.\n" RESET);
         bumount();
-        exit(FALLO);
+        return FALLO;
     }
 
     // Crear el directorio raíz
     if (reservar_inodo('d', 7) == FALLO)
     {
-        fprintf(stderr, "Error al crear el directorio raíz.\n");
+        perror(RED "Error al crear el directorio raíz.\n" RESET);
         bumount();
-        exit(FALLO);
+        return FALLO;
     }
 
     if (bumount() == FALLO)
     {
-        fprintf(stderr, "Error al desmontar el dispositivo virtual.\n");
-        exit(FALLO);
+        perror(RED "Error al desmontar el dispositivo virtual.\n" RESET);
+        return FALLO;
     }
 
     printf("Dispositivo virtual formateado correctamente.\n");

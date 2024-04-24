@@ -4,29 +4,28 @@
 
 void mostrar_error_buscar_entrada(int error)
 {
-    // fprintf(stderr, "Error: %d\n", error);
     switch (error)
     {
     case -2:
-        fprintf(stderr, RED "Error: Camino incorrecto.\n" RESET);
+        perror(RED "Error: Camino incorrecto.\n" RESET);
         break;
     case -3:
-        fprintf(stderr, RED "Error: Permiso denegado de lectura.\n" RESET);
+        perror(RED "Error: Permiso denegado de lectura.\n" RESET);
         break;
     case -4:
-        fprintf(stderr, RED "Error: No existe el archivo o el directorio.\n" RESET);
+        perror(RED "Error: No existe el archivo o el directorio.\n" RESET);
         break;
     case -5:
-        fprintf(stderr, RED "Error: No existe algún directorio intermedio.\n" RESET);
+        perror(RED "Error: No existe algún directorio intermedio.\n" RESET);
         break;
     case -6:
-        fprintf(stderr, RED "Error: Permiso denegado de escritura.\n" RESET);
+        perror(RED "Error: Permiso denegado de escritura.\n" RESET);
         break;
     case -7:
-        fprintf(stderr, RED "Error: El archivo ya existe.\n" RESET);
+        perror(RED "Error: El archivo ya existe.\n" RESET);
         break;
     case -8:
-        fprintf(stderr, RED "Error: No es un directorio.\n" RESET);
+        perror(RED "Error: No es un directorio.\n" RESET);
         break;
     }
 }
@@ -37,8 +36,8 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
 
     if (camino == NULL || *camino != '/')
     { // Comprobamos que el formato sea correcto
-        fprintf(stderr, "Error: Camino incorrecto.\n");
-        return FALLO;
+        mostrar_error_buscar_entrada(ERROR_CAMINO_INCORRECTO);
+        return ERROR_CAMINO_INCORRECTO;
     }
 
     // Encontrar la primera '/' después de la primera posición
@@ -85,12 +84,12 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        fprintf(stderr, "Error al leer el superbloque.\n");
+        perror(RED "Error al leer el superbloque.\n" RESET);
         return FALLO;
     }
 
-    if (strcmp(camino_parcial, "/") == 0)
-    {                               // camino_parcial es “/”
+    if (strcmp(camino_parcial, "/") == 0) // camino_parcial es “/”
+    {                               
         *p_inodo = SB.posInodoRaiz; // nuestra raiz siempre estará asociada al inodo 0
         *p_entrada = 0;
         return EXITO;
@@ -283,20 +282,19 @@ int mi_dir(const char *camino, char *buffer)
     {
         leer_inodo(inodos, &inodo); // Leemos el inodo
         numEntradas = inodo.tamEnBytesLog / sizeof(struct entrada);
-        if (inodo.tipo != 'd') // Comprobamos si es un directorio
-        {                      // Comprobamos que el inodo sea tipo directorio
-            perror(RED "El inodo no es de tipo directorio\n" RESET);
-            return -7;
-        }
 
-        if (inodo.tipo != 'd' && inodo.permisos & 4)
+        if (inodo.tipo != 'd') // Si no es un directorio, retornamos error
         {
-            // if((inodo.permisos & 4)!=4){ //Comprobamos que el inodo tenga permisos de lectura
-            perror(RED "El inodo no tiene permisos de lectura\n" RESET);
-            return -2;
+            mostrar_error_buscar_entrada(ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO);
+            return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
         }
 
-        // entradas = SB.posInodoRaiz;
+        if ((inodo.permisos & 4) != 4) //Comprobamos que el inodo tenga permisos de lectura
+        {
+            mostrar_error_buscar_entrada(ERROR_PERMISO_LECTURA);
+            return ERROR_PERMISO_LECTURA;
+        }
+       
         for (int idx = 0; idx < numEntradas; idx++)
         {
             // Recorremos todas las entradas
@@ -307,8 +305,8 @@ int mi_dir(const char *camino, char *buffer)
                 return FALLO;
             }
 
-            if (leer_inodo(entrada.ninodo, &inodo) == FALLO)
-            { // Leemos el inodo asociado a cada entrada
+            if (leer_inodo(entrada.ninodo, &inodo) == FALLO) // Leemos el inodo asociado a cada entrada
+            {
                 perror(RED "No ha podido leerse el inodo en mi_dir." RESET);
                 return FALLO;
             }

@@ -1,7 +1,5 @@
 #include "bloques.h"
 
-// revisar si es perror o frpintf
-
 // Variable global estática para el descriptor del fichero
 static int descriptor = 0;
 
@@ -32,17 +30,17 @@ int bumount()
 int bwrite(unsigned int nbloque, const void *buf)
 {
     off_t desplazamiento = nbloque * BLOCKSIZE;
-    // O ASI    off_t puntero =lseek(descriptor, desplazamiento, SEEK_SET);
+    
     if (lseek(descriptor, desplazamiento, SEEK_SET) == -1)
     {
-        fprintf(stderr, "%sError en bwrite al mover el puntero del fichero: %s%s\n", RED, strerror(errno), RESET);
+        perror(RED "%sError en bwrite al mover el puntero del fichero: %s%s\n" RESET);
         return FALLO;
     }
 
     size_t bytes_escritos = write(descriptor, buf, BLOCKSIZE);
     if (bytes_escritos == -1)
     {
-        fprintf(stderr, "%sError en bwrite al escribir en el fichero: %s%s\n", RED, strerror(errno), RESET);
+        perror(RED "%sError en bwrite al escribir en el fichero: %s%s\n" RESET);
         return FALLO;
     }
 
@@ -55,14 +53,14 @@ int bread(unsigned int nbloque, void *buf)
 
     if (lseek(descriptor, desplazamiento, SEEK_SET) == -1)
     {
-        fprintf(stderr, "%sError en bread al mover el puntero del fichero: %s%s\n", RED, strerror(errno), RESET);
+        perror(RED "%sError en bread al mover el puntero del fichero: %s%s\n" RESET);
         return FALLO;
     }
 
     size_t bytes_leidos = read(descriptor, buf, BLOCKSIZE);
     if (bytes_leidos == -1)
     {
-        fprintf(stderr, "%sError en bread al leer del fichero: %s%s\n", RED, strerror(errno), RESET);
+        perror(RED "%sError en bread al leer del fichero: %s%s\n" RESET);
         return FALLO;
     }
     return bytes_leidos;

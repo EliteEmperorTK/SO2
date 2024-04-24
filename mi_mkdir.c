@@ -24,13 +24,15 @@ int main(int argc, char **argv)
         return FALLO;
     }
 
-    if (bmount(nombre_dispositivo) == FALLO)
+    if (bmount(nombre_dispositivo) == FALLO) //Montamos el dispositivo virtual
     {
         perror(RED "Error al montar el dispositivo virtual.\n" RESET);
         return FALLO;
     }
+
     mi_creat(ruta, permisos);
-    if (bumount() == FALLO)
+
+    if (bumount() == FALLO) //Desmontamos el dispositivo virtual
     {
         fprintf(stderr, "Error al desmontar el dispositivo virtual.\n");
         exit(FALLO);

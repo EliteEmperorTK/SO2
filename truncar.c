@@ -1,6 +1,6 @@
 #include "ficheros.h"
 
-int main(int args, char **argv) // bien suponemos xd
+int main(int args, char **argv)
 {
     // Validación sintaxis
     if (args != 4)
@@ -25,23 +25,33 @@ int main(int args, char **argv) // bien suponemos xd
     {
         perror(RED "Error al leer el superbloque.\n" RESET);
         bumount();
-        exit(FALLO);
+        return FALLO;
     }
 
     int cantBlo = SB.cantBloquesLibres;
     printf("CantBloquesLibres:%d\n", cantBlo);
+
     // Comprobación mi_truncar_f
     if (nbytes == 0)
     {
-        liberar_inodo(ninodo);
+        if(liberar_inodo(ninodo) == FALLO){
+            perror(RED "Error al liberar el inodo en truncar.c" RESET);
+            return FALLO;
+        }
     }
     else
     {
-        mi_truncar_f(ninodo, nbytes);
+        if(mi_truncar_f(ninodo, nbytes) == FALLO){
+            perror(RED "Error al realizar el mi_truncar_f en truncar.c" RESET);
+            return FALLO;
+        }
     }
 
     struct STAT stats;
-    mi_stat_f(ninodo, &stats);
+    if(mi_stat_f(ninodo, &stats) == FALLO){
+        perror(RED "Error al asignar los valores con mi_stat_f en truncar.c");
+        return FALLO;
+    }
 
     struct tm *ts;
     char atime[80];
@@ -63,7 +73,7 @@ int main(int args, char **argv) // bien suponemos xd
     fprintf(stderr, CYAN "numBloquesOcupados: %d\n" RESET, stats.numBloquesOcupados);
 
     // Desmontar dispositivo
-    if (bumount() == -1)
+    if (bumount() == FALLO)
     {
         perror(RED "Error en truncar.c, al ejecutar bumount\n" RESET);
         return FALLO;

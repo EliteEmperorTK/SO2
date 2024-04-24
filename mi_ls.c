@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     const char *nombre_dispositivo = argv[1];
     const char *ruta = argv[2];
 
-    if (bmount(nombre_dispositivo) == FALLO)
+    if (bmount(nombre_dispositivo) == FALLO) //Montamos el dispositivo virtual
     {
         perror(RED "Error al montar el dispositivo virtual.\n" RESET);
         return FALLO;
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     printf("-----------------------------------------------------------\n");
     printf("%s\n", buffer);
 
-    if (bumount() == FALLO)
+    if (bumount() == FALLO) //Desmontamos el dispositivo virtual
     {
         perror(RED "Error al desmontar el dispositivo virtual.\n" RESET);
         return FALLO;
