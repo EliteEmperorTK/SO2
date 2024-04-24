@@ -8,6 +8,9 @@
 #define ERROR_ENTRADA_YA_EXISTENTE (-7)
 #define ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO (-8)
 
+#define TAMFILA 100
+#define TAMBUFFER (TAMFILA * 1000) // suponemos un máx de 1000 entradas, aunque debería ser SB.totInodos
+
 #define TAMNOMBRE 60 // tamaño del nombre de directorio o fichero, en Ext2 = 256
 struct entrada
 {
@@ -15,6 +18,7 @@ struct entrada
     unsigned int ninodo;
 };
 
+// NIVEL 7
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo);
 
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos);
@@ -22,3 +26,12 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 void mostrar_error_buscar_entrada(int error);
 
 void mostrar_buscar_entrada(char *camino, char reservar);
+
+// NIVEL 8
+int mi_creat(const char *camino, unsigned char permisos);
+
+int mi_dir(const char *camino, char *buffer);
+
+int mi_chmod(const char *camino, unsigned char permisos);
+
+int mi_stat(const char *camino, struct STAT *p_stat);
