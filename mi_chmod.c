@@ -12,9 +12,9 @@ int main(int argc, char **argv)
     int permisos = atoi(argv[2]);
     const char *ruta = argv[3];
 
-    if (permisos < 0 && permisos > 7)
+    if (permisos < 0 || permisos > 7)
     { // Comprobacion de permisos
-        perror(RED "ERROR: Permisos inválidos\n" RESET);
+        fprintf(stderr, RED "ERROR: Permisos incorrectos en mi_chmod -> permisos = %d\n" RESET, permisos);
         return FALLO;
     }
 
