@@ -244,7 +244,7 @@ int main(int argc, char **argv)
     printf("numBloquesOcupados: %d \n\n", inodos.numBloquesOcupados);
     printf("SB.posPrimerInodoLibre = %d \n", SB.posPrimerInodoLibre);
     */
-
+/*
     /////////////
     // NIVEL 7 //
     /////////////
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
     mostrar_buscar_entrada("/pruebas/docs/doc1", 1); // ERROR_ENTRADA_YA_EXISTENTE
     mostrar_buscar_entrada("/pruebas/casos/", 1);    // creamos /pruebas/casos/
     mostrar_buscar_entrada("/pruebas/docs/doc2", 1); // creamos /pruebas/docs/doc2
-
+*/
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
     {
@@ -273,3 +273,4 @@ int main(int argc, char **argv)
 
     return EXITO;
 }
+
