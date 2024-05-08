@@ -1,5 +1,6 @@
 #include "ficheros.h"
 
+// Escribimos un fichero
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes)
 {
     int cant_bytes = 0;
@@ -123,6 +124,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     return cant_bytes;
 }
 
+// Leemos un fichero
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes)
 {
     int nbfisico;
