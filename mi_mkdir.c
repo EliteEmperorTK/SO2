@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 
     if (permisos < 0 || permisos > 7)
     { // Comprobacion de permisos
-        perror(RED "ERROR: Permisos inválidos\n" RESET);
+        fprintf(stderr, RED "ERROR: Permisos incorrectos en mi_mkdir -> permisos = %d\n" RESET, permisos);
         return FALLO;
     }
 
