@@ -1,5 +1,8 @@
 #include "ficheros.h"
 
+/* args: cantidad de argumentos
+* argv: lista de argumentos: [1] = nombre del dispositivo; [2] = nº inodo que vamos a truncar; [3] = cantidad de bytes hasta la que vamos a truncar
+*/
 int main(int args, char **argv)
 {
     // Validación sintaxis

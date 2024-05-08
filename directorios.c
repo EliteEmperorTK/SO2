@@ -2,6 +2,9 @@
 
 // NIVEL 7
 
+/* Muestra por pantalla un error
+* error: tipo de error, dependiendo de su valor se lanza un error u otro.
+*/
 void mostrar_error_buscar_entrada(int error)
 {
     switch (error)
@@ -30,7 +33,12 @@ void mostrar_error_buscar_entrada(int error)
     }
 }
 
-// Modifica inicial y final con el trozo de directorio correspondiente del camino.
+/* Dada una cadena de caracteres se separa su contenido en una parte inicial y una parte final.
+* camino: cadena de caracteres inicial, empieza por '/'
+* inicial: al final será la porción comprendida entre las dos primeras '/'. Si no hay segundo '/', tendrá el nombre del fichero
+* final: resto del camino a partir del segundo '/' (inclusive)
+* tipo: d o f en función de si camino es un directorio o un fichero
+*/
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
 {
 
@@ -72,14 +80,25 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
     return EXITO; // Éxito
 }
 
+/* Función recursiva que busca una determinada entrada entre las entradas del inodo correspondiente a su directorio padre
+* camino_parcial: cadena de caracteres que representa la parte inicial de un camino
+* p_inodo_dir: nº inodo del directorio padre
+* p_inodo: nº inodo al que está asociado el nombre de la entrada buscada
+* p_entrada: nº de entrada dentro del inodo *p_inodo_dir que lo contiene (empezando por 0)
+* reservar:
+* permisos:
+*/
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos)
 {
     struct entrada entrada;
     struct inodo inodo_dir;
+
     char inicial[sizeof(entrada.nombre)];
     char final[strlen(camino_parcial)];
+
     char tipo;
-    int cant_entradas_inodo, num_entrada_inodo;
+    int cant_entradas_inodo;
+    int num_entrada_inodo;
 
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
@@ -88,7 +107,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         return FALLO;
     }
 
-    if (strcmp(camino_parcial, "/") == 0) // camino_parcial es “/”
+    if (strcmp(camino_parcial, "/") == 0) // el camino parcial es '/'
     {                               
         *p_inodo = SB.posInodoRaiz; // nuestra raiz siempre estará asociada al inodo 0
         *p_entrada = 0;
@@ -102,6 +121,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     {
         return ERROR_CAMINO_INCORRECTO;
     }
+
     fprintf(stderr, "[buscar_entrada()→ inicial: %s, final: %s, reservar: %d]\n", inicial, final, reservar);
     // buscamos la entrada cuyo nombre se encuentra en inicial
     if (leer_inodo(*p_inodo_dir, &inodo_dir) == FALLO)
@@ -110,8 +130,8 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         return FALLO;
     }
 
-    if ((inodo_dir.permisos & 4) != 4)
-    { // Miramos si el inodo tiene permisos de lectura
+    if ((inodo_dir.permisos & 4) != 4) // Miramos si el inodo tiene permisos de lectura
+    {
         return ERROR_PERMISO_LECTURA;
     }
 
@@ -227,6 +247,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     }
     return EXITO;
 }
+
 
 // NIVEL 8
 int mi_creat(const char *camino, unsigned char permisos)

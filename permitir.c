@@ -1,5 +1,9 @@
 #include "ficheros.h"
 
+/* Lee el texto de un inodo
+* args: cantidad de argumentos
+* argv: lista de argumentos =  [1] = nombre del dispositivo; [2] = nº del inodo al que vamos a modificar sus permisos; [3] = nuevos permisos
+*/
 int main(int args, char **argv)
 {
     // Validación sintaxis

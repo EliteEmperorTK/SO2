@@ -1,6 +1,9 @@
 #include "ficheros_basico.h"
 
-// Calcula el tamaño en bloques necesario para el mapa de bits.
+/**
+*   Calcula el tamaño en bloques necesario para el mapa de bits.   
+*   nbloques: numero total de bloques   
+*/
 int tamMB(unsigned int nbloques)
 {
     int tam = nbloques / 8;
@@ -16,7 +19,10 @@ int tamMB(unsigned int nbloques)
     }
 }
 
-// Calcula el tamaño en bloques del array de inodos.
+/**
+*   Calcula el tamaño en bloques del array de inodos.
+*   ninodos: numero total de inodos 
+*/
 int tamAI(unsigned int ninodos)
 {
     int tam = ninodos * INODOSIZE;
@@ -32,7 +38,11 @@ int tamAI(unsigned int ninodos)
     }
 }
 
-// Inicializa los datos del superbloque.
+/**
+*   Inicializa los datos del superbloque.
+*   nbloques: numero total de bloques
+*   ninodos: numero total de inodos 
+*/
 int initSB(unsigned int nbloques, unsigned int ninodos)
 { // Superbloques
     struct superbloque SB;
@@ -61,12 +71,20 @@ int initSB(unsigned int nbloques, unsigned int ninodos)
     return EXITO;
 }
 
+
+/**
+*
+*
+*
+*/
 int block_size(int bytes)
 {
     return (bytes + BLOCKSIZE - 1) / BLOCKSIZE;
 }
 
-// Inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos.
+/**
+*   Inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos   
+*/
 int initMB()
 { // Mapa de bits
     struct superbloque SB;
@@ -78,26 +96,28 @@ int initMB()
         return FALLO;
     }
 
-    // Calcular el tamaño de los metadatos en bloques
-    const int metadata_block_size = tamMB(SB.totBloques) + tamAI(SB.totInodos) + tamSB;
+    // numero de bloques que ocupan los metadatos
+    const int nBloquesMetadatos = tamMB(SB.totBloques) + tamAI(SB.totInodos) + tamSB;
 
     // Calcular el tamaño del mapa de bits necesario en bytes
-    const int metadata_bytes = metadata_block_size / 8;
-    const int metadata_extra_bits = metadata_block_size % 8;
+    // numero de bytes que ocupan los metadatos
+    const int nBytesMetadatos = nBloquesMetadatos / 8;
+    // numero de bits extra
+    const int nExtraBitsMetadatos = nBloquesMetadatos % 8;
 
     // Calcular el tamaño del bloque del mapa de bits y el tamaño total en bytes
-    const int bitmap_block_size = block_size(metadata_bytes + (metadata_extra_bits > 0));
+    const int bitmap_block_size = block_size(nBytesMetadatos + (nExtraBitsMetadatos > 0));
     const int bitmap_byte_size = bitmap_block_size * BLOCKSIZE;
 
     // Crear un buffer para almacenar el mapa de bits en memoria
     unsigned char bitmap[bitmap_byte_size];
 
     // Llenar los bytes correspondientes a los metadatos con 1s
-    memset(bitmap, 255, metadata_bytes);
+    memset(bitmap, 255, nBytesMetadatos);
 
     // Llenar el último byte parcial con 1s y 0s según los bits restantes de los metadatos
-    memset(bitmap + metadata_bytes + 1, 0, bitmap_byte_size - metadata_bytes);
-    bitmap[metadata_bytes] = 255 << (8 - metadata_extra_bits);
+    memset(bitmap + nBytesMetadatos + 1, 0, bitmap_byte_size - nBytesMetadatos);
+    bitmap[nBytesMetadatos] = 255 << (8 - nExtraBitsMetadatos);
 
     // Escribir el mapa de bits en el disco
     for (int i = 0; i < bitmap_block_size; ++i)
@@ -110,7 +130,7 @@ int initMB()
     }
 
     // Actualizar la cantidad de bloques libres en el superbloque
-    SB.cantBloquesLibres -= metadata_block_size;
+    SB.cantBloquesLibres -= nBloquesMetadatos;
 
     // Escribir el superbloque actualizado en el disco
     if(bwrite(posSB, &SB) == FALLO){
@@ -120,6 +140,9 @@ int initMB()
     return EXITO;
 }
 
+/**
+*   inicializar la lista de inodos libres
+*/
 int initAI()
 { // Array Inodos
     struct superbloque SB;
@@ -169,6 +192,12 @@ int initAI()
 }
 
 // NIVEL 3
+
+/**
+*   Escribe el valor indicado por bit en un bloque del MB
+*   nbloque: nº de bloque a escribir
+*   bit: valor 0 o 1 a escribir
+*/
 int escribir_bit(unsigned int nbloque, unsigned int bit)
 {
     struct superbloque SB;
@@ -208,6 +237,10 @@ int escribir_bit(unsigned int nbloque, unsigned int bit)
     return EXITO;
 }
 
+/**
+*   Lee un determinado bit del MB y devuelve el valor del bit leído.
+*   nbloque: nº de bloque a leer el bit
+*/
 char leer_bit(unsigned int nbloque)
 {
     // Leer el superbloque para obtener la localización del MB.
@@ -236,7 +269,10 @@ char leer_bit(unsigned int nbloque)
     return mascara;
 }
 
-
+/**
+*   Encuentra el primer bloque libre, consultando el MB (primer bit a 0),
+*   lo ocupa (poniendo el correspondiente bit a 1 con la ayuda de la función escribir_bit()) y devuelve su posición.
+*/
 int reservar_bloque()
 {
     struct superbloque SB;
@@ -330,7 +366,10 @@ int reservar_bloque()
     return nbloque;
 }
 
-
+/**
+*   Libera un bloque determinado
+*   nbloque: bloque a liberar
+*/
 int liberar_bloque(unsigned int nbloque)
 {
     struct superbloque SB;
@@ -361,7 +400,12 @@ int liberar_bloque(unsigned int nbloque)
     return nbloque;
 }
 
-
+/*
+*   Escribe el contenido de una variable de tipo struct inodo, pasada por referencia, 
+*   en un determinado inodo del array de inodos, inodos.
+*   ninodo: numero total de inodos
+*   inodo: inodo a escribir
+*/
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
 {
     struct superbloque SB;
@@ -372,21 +416,21 @@ int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
     }
 
     // Encontramos el bloque
-    int nBloqueAI = (ninodo * INODOSIZE) / BLOCKSIZE;
-    int nBloqueAbs = nBloqueAI + SB.posPrimerBloqueAI;
+    int nbloqueAI = (ninodo * INODOSIZE) / BLOCKSIZE;
+    int nbloqueAbs = nbloqueAI + SB.posPrimerBloqueAI;
 
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
-    if (bread(nBloqueAbs, inodos) == FALLO)
+    if (bread(nbloqueAbs, inodos) == FALLO)
     {
         // Error al leer el bloque
         perror(RED "Error en escribir_inodo al leer el bloque." RESET);
         return FALLO;
     }
 
-    int posInodo = ninodo % (BLOCKSIZE / INODOSIZE);
-    inodos[posInodo] = *inodo;
+    int posinodo = ninodo % (BLOCKSIZE / INODOSIZE);
+    inodos[posinodo] = *inodo;
 
-    if (bwrite(nBloqueAbs, inodos) == FALLO)
+    if (bwrite(nbloqueAbs, inodos) == FALLO)
     {
         // Error al escribir el bloque
         perror(RED "Error en escribir_inodo al escribir el bloque." RESET);
@@ -395,7 +439,12 @@ int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
     return EXITO;
 }
 
-
+/**
+*Lee un determinado inodo del array de inodos para volcarlo en 
+*una variable de tipo struct inodo pasada por referencia.
+* ninodo: numero total de inodos
+* inodo: inodo donde se almacena lo leido
+*/
 int leer_inodo(unsigned int ninodo, struct inodo *inodo)
 {
     struct superbloque SB;
@@ -406,24 +455,29 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo)
     }
 
     // Encontramos el bloque
-    int nBloqueAI = (ninodo * INODOSIZE) / BLOCKSIZE;
-    int nBloqueAbs = nBloqueAI + SB.posPrimerBloqueAI;
+    int nbloqueAI = (ninodo * INODOSIZE) / BLOCKSIZE;
+    int nbloqueAbs = nbloqueAI + SB.posPrimerBloqueAI;
 
     struct inodo inodos[BLOCKSIZE / INODOSIZE];
 
-    if (bread(nBloqueAbs, inodos) == FALLO)
+    if (bread(nbloqueAbs, inodos) == FALLO)
     {
         // Error al leer el bloque
         perror(RED "Error en escribir_inodo al leer el bloque." RESET);
         return FALLO;
     }
 
-    int posInodo = ninodo % (BLOCKSIZE / INODOSIZE);
-    *inodo = inodos[posInodo];
+    int posinodo = ninodo % (BLOCKSIZE / INODOSIZE);
+    *inodo = inodos[posinodo];
     return EXITO;
 }
 
-
+/**
+*Encuentra el primer inodo libre,lo reserva, devuelve su número y
+* actualiza la lista enlazada de inodos libres.
+*   tipo: tipo del inodo a reservar
+*   permisos:  permisos del inodo a reservar
+*/
 int reservar_inodo(unsigned char tipo, unsigned char permisos)
 {
     struct superbloque SB;
@@ -480,28 +534,33 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
 
 
 // NIVEL 4
-// Devolvemos el nrangoBL
-int obtener_nRangoBL(struct inodo *inodos, unsigned int nblogico, unsigned int *ptr)
+
+/* Obtenemos el rango de punteros en el que se situa el bloque lógico que buscamos, y la dirección almacenada en el inodo
+* inodo: inodo del cual queremos obtener su direccion almacenada
+* nblogico: bloque lógico del cual hay que obtener su rango de punteros
+* ptr: para obtener la dirección almacenada en el inodo
+*/
+int obtener_nRangoBL(struct inodo *inodo, unsigned int nblogico, unsigned int *ptr)
 {
 
     if (nblogico < DIRECTOS)
     { // <12
-        *ptr = inodos->punterosDirectos[nblogico];
+        *ptr = inodo->punterosDirectos[nblogico];
         return 0;
     }
     else if (nblogico < INDIRECTOS0)
     { // <268
-        *ptr = inodos->punterosIndirectos[0];
+        *ptr = inodo->punterosIndirectos[0];
         return 1;
     }
     else if (nblogico < INDIRECTOS1)
     { // <65.804
-        *ptr = inodos->punterosIndirectos[1];
+        *ptr = inodo->punterosIndirectos[1];
         return 2;
     }
     else if (nblogico < INDIRECTOS2)
     { // <16.843.020
-        *ptr = inodos->punterosIndirectos[2];
+        *ptr = inodo->punterosIndirectos[2];
         return 3;
     }
     else
@@ -512,7 +571,10 @@ int obtener_nRangoBL(struct inodo *inodos, unsigned int nblogico, unsigned int *
     }
 }
 
-// Devolvemos el índice
+/* Devolvemos el índice de los bloques de punteros
+* nblogico: nº del bloque lógico a localizar
+* nivel_punteros: simplemente el nivel de los punteros
+*/
 int obtener_indice(unsigned int nblogico, int nivel_punteros)
 {
     if (nblogico < DIRECTOS)
@@ -552,6 +614,11 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros)
     return FALLO; // Si no se ha encontrado, devolvemos FALLO
 }
 
+/* Se obtiene el nº de bloque físico correspondiente a un bloque lógico del inodo indicado
+* inodo: inodo del cual obtendremos el bloque lógico
+* nblogico: nº de bloque lógico del cual hay que obtener el número de bloque físico
+* reservar: para determinar si el bloque existe o no
+*/
 int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned char reservar)
 {
     // Inicializamos las variables
@@ -669,6 +736,11 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
 }
 
 // NIVEL 6
+
+/*
+*   Liberamos un inodo y pasa a ser el primero en la lista de inodos libres  
+*   ninodo: nº de inodo a liberar
+*/
 int liberar_inodo(unsigned int ninodo)
 {
     struct inodo inodo;
@@ -720,6 +792,10 @@ int liberar_inodo(unsigned int ninodo)
 }
 
 
+/* Libera todos los bloques ocupados a partir del bloque lógico indicado por primerBL
+* primerBL: indica a partir de qué bloque hay que empezar a liberar (incluido)
+* inodo: el inodo del cual vamos a borrar sus bloques
+*/
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
 {
     // libera los bloques de datos e índices iterando desde el primer bloque lógico a liberar hasta el último

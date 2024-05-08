@@ -1,6 +1,12 @@
 #include "ficheros.h"
 
-// Escribimos un fichero
+/* 
+* Escribimos un fichero. 
+* ninodo: nº del inodo a escribir
+* buf_original: el buffer que contiene lo que se escribirá
+* offset: posición de escritura inicial con respecto al inodo en bytes lógicos
+* nbytes: tamaño en bytes de buf_original
+*/
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes)
 {
     int cant_bytes = 0;
@@ -124,11 +130,16 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     return cant_bytes;
 }
 
-// Leemos un fichero
+/* Leemos un fichero
+* ninodo: nº del inodo a leer
+* buf_original: el buffer en el que se guardará lo leído (debe estar inicializado a 0's)
+* offset: posición de lectura inicial con respecto al inodo en bytes lógicos
+* nbytes: nº de bytes a leer
+*/
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes)
 {
     int nbfisico;
-    int cant_bytes;
+    int leidos;
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
 
@@ -138,7 +149,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         return FALLO;
     }
 
-    cant_bytes = 0;
+    leidos = 0;
 
     if ((inodo.permisos & 4) != 4)
     {
@@ -150,8 +161,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     // Comprobamos que el offset esté dentro del tamaño en bytes lógicos del inodo
     if (offset >= inodo.tamEnBytesLog)
     {
-        // fprintf(stderr,"El offset es mayor al tamaño de bytes del inodo\n");
-        return cant_bytes;
+        return leidos;
     }
     // Si pretende leer más allá de EOF leemos solo hasta el EOF
     if ((offset + nbytes) >= inodo.tamEnBytesLog)
@@ -179,7 +189,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             }
             memcpy(buf_original, buf_bloque + desp1, nbytes);
         }
-        cant_bytes = nbytes;
+        leidos = nbytes;
     }
     else
     { // Caso 2: la operación de lectura efecte a más de un bloque
@@ -196,7 +206,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             }
             memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
         }
-        cant_bytes = (BLOCKSIZE - desp1);
+        leidos = (BLOCKSIZE - desp1);
 
         // Bloques intermedios: no hay que preservar datos
         for (int bl = primerBL + 1; bl < ultimoBL; bl++)
@@ -209,9 +219,9 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
                     perror(RED "Error de lectura\n" RESET);
                     return FALLO;
                 }
-                memcpy(buf_original + cant_bytes, buf_bloque, BLOCKSIZE);
+                memcpy(buf_original + leidos, buf_bloque, BLOCKSIZE);
             }
-            cant_bytes += BLOCKSIZE;
+            leidos += BLOCKSIZE;
         }
 
         // Bloque final: preservar la parte restante
@@ -225,9 +235,9 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
                 perror(RED "Error de lectura\n" RESET);
                 return FALLO;
             }
-            memcpy(buf_original + cant_bytes, buf_bloque, desp2 + 1);
+            memcpy(buf_original + leidos, buf_bloque, desp2 + 1);
         }
-        cant_bytes += desp2 + 1;
+        leidos += desp2 + 1;
     }
 
     // Actualizamos metadatos
@@ -244,10 +254,13 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         perror(RED "Error al escribir el inodo en mi_read_f");
         return FALLO;
     }
-    return cant_bytes;
+    return leidos;
 }
 
-
+/* Devuelve la metainformación de un fichero/directorio
+* ninodo: nº inodo del cual vamos a leer su metainformación
+* p_stat: estructura STAT de la qual vamos a leer sus parámetros
+*/
 int mi_stat_f(unsigned int ninodo, struct STAT *p_stat)
 {
     struct inodo inodo;
@@ -273,6 +286,10 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat)
     return EXITO; // Éxito
 }
 
+/* Cambia los permisos de un fichero/directorio
+* ninodo: nº inodo al que cambiaremos los permisos
+* permisos: permisos que vamos a conceder
+*/
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
 {
     struct inodo inodo;
@@ -300,7 +317,10 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
     return EXITO; // Éxito
 }
 
-// bien
+/* Trunca un fichero/directorio
+* ninodo: nº de inodo que se va a truncar
+* nbytes: cantidad de bytes a la que se va a truncar el fichero
+*/
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes)
 {
     int bloq_liber;

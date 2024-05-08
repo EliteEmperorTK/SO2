@@ -11,7 +11,8 @@ int main(int argc, char **argv)
     const char *nombre_dispositivo = argv[1];
     unsigned int nbloques = atoi(argv[2]);
 
-    int descriptor = bmount(nombre_dispositivo); //Montamos el dispositivo virtual
+    //Montamos el dispositivo virtual
+    int descriptor = bmount(nombre_dispositivo); 
     if (descriptor == FALLO)
     {
         perror(RED "Error al montar el dispositivo virtual.\n" RESET);

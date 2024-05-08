@@ -1,5 +1,10 @@
 #include "ficheros.h"
 
+/* Lee el texto de un inodo
+* args: cantidad de argumentos
+* argv: lista de argumentos:  [1] = nombre del dispositivo; [2] = nº del inodo a leer
+*/
+
 int main(int args, char **argv)
 {
     // Validación de argumentos
@@ -8,6 +13,7 @@ int main(int args, char **argv)
         perror(RED "Sintaxis introducida incorrecta, sintaxis correcta: './leer <nombre_dispositivo><ninodos>\n" RESET);
         return FALLO;
     }
+
     if (bmount(argv[1]) == FALLO)
     {
         perror(RED "Error en leer.c al ejecutar bmount" RESET);
@@ -16,9 +22,9 @@ int main(int args, char **argv)
 
     struct STAT stat;
 
-    int tamBuffer = 1500;                  // tamaño buffer
-    unsigned char buffer_texto[tamBuffer]; // creamos el bufer
-    memset(buffer_texto, 0, tamBuffer);    // asignamos todo a 0
+    int tambuffer = 1500;                  // tamaño buffer
+    unsigned char buffer_texto[tambuffer]; // creamos el bufer
+    memset(buffer_texto, 0, tambuffer);    // asignamos todo a 0
 
     int ninodo = atoi(argv[2]);
 
@@ -26,14 +32,14 @@ int main(int args, char **argv)
     int offset = 0;
     int leidos = 0;
 
-    leidos = mi_read_f(ninodo, buffer_texto, offset, tamBuffer); // leemos el inodo
+    leidos = mi_read_f(ninodo, buffer_texto, offset, tambuffer); // leemos el inodo
     while (leidos > 0) //De mientras pueda leerse, lo hacemos
     {
         write(1, buffer_texto, leidos);
         totalLeidos += leidos; // añadimos los bytes leídos al contador total de bytes leídos
-        offset += tamBuffer;
-        memset(buffer_texto, 0, tamBuffer);                          // reiniciamos el valor del buffer
-        leidos = mi_read_f(ninodo, buffer_texto, offset, tamBuffer); // volvemos a leer
+        offset += tambuffer;
+        memset(buffer_texto, 0, tambuffer);                          // reiniciamos el valor del buffer
+        leidos = mi_read_f(ninodo, buffer_texto, offset, tambuffer); // volvemos a leer
     }
 
     char string[128];
