@@ -247,6 +247,7 @@ int mi_creat(const char *camino, unsigned char permisos)
     return EXITO;
 }
 
+// Pone el contenido del directorio(camino) en un buffer de memoria(buffer)
 int mi_dir(const char *camino, char *buffer)
 {
     struct superbloque SB;
@@ -254,12 +255,10 @@ int mi_dir(const char *camino, char *buffer)
 
     struct entrada entrada;
 
-    struct tm *tm;
-
     char tmp[100];
-    char tam[20];
-    int numEntradas;
-    int posible_error;
+    
+    int numEntradas;    // Cantidad de entradas del inodo
+    int posibleError;
 
     if (bread(posSB, &SB) == FALLO)
     {
@@ -271,11 +270,11 @@ int mi_dir(const char *camino, char *buffer)
     unsigned int inodoDir = SB.posInodoRaiz;
     unsigned int inodos = SB.posInodoRaiz;
 
-    posible_error = buscar_entrada(camino, &inodoDir, &inodos, &entradas, 0, 0); // Buscamos la entrada
+    posibleError = buscar_entrada(camino, &inodoDir, &inodos, &entradas, 0, 0); // Buscamos la entrada
 
-    if (posible_error < 0) // Si hay un error lo enseñamos por pantalla
+    if (posibleError < 0) // Si hay un error lo enseñamos por pantalla
     {
-        mostrar_error_buscar_entrada(posible_error);
+        mostrar_error_buscar_entrada(posibleError);
         return FALLO;
     }
     else
@@ -295,31 +294,23 @@ int mi_dir(const char *camino, char *buffer)
             return ERROR_PERMISO_LECTURA;
         }
        
-        for (int idx = 0; idx < numEntradas; idx++)
+        for (int idx = 0; idx < numEntradas; idx++) // Recorremos todas las entradas
         {
-            // Recorremos todas las entradas
             memset(entrada.nombre, 0, sizeof(entrada.nombre)); // Inicializamos el buffer de lectura poniendo zeros
 
-            if (mi_read_f(inodos, &entrada, idx * sizeof(struct entrada), sizeof(struct entrada)) < 0)
+            if (mi_read_f(inodos, &entrada, idx * sizeof(struct entrada), sizeof(struct entrada)) == FALLO) // Leemos el fichero correspondiente
             {
+                perror(RED "No ha podido leerse el fichero en mi_dir." RESET);
                 return FALLO;
             }
 
-            if (leer_inodo(entrada.ninodo, &inodo) == FALLO) // Leemos el inodo asociado a cada entrada
+
+            if (leer_inodo(entrada.ninodo, &inodo) == FALLO) // Leemos el inodo asociado a la entrada
             {
                 perror(RED "No ha podido leerse el inodo en mi_dir." RESET);
                 return FALLO;
             }
 
-            if (inodo.tipo == 'd') // Tipo = directorio
-            {
-                strcat(buffer, "d");
-            }
-            else
-            { // Tipo = fichero
-                strcat(buffer, "f");
-                strcat(buffer, "\t");
-            }
 
             // Permisos
             if (inodo.permisos & 4) // Permisos de lectura
@@ -331,6 +322,7 @@ int mi_dir(const char *camino, char *buffer)
                 strcat(buffer, "-");
             }
 
+
             if (inodo.permisos & 2) // Permisos de escritura
             {
                 strcat(buffer, "w");
@@ -340,6 +332,7 @@ int mi_dir(const char *camino, char *buffer)
                 strcat(buffer, "-");
             }
 
+
             if (inodo.permisos & 1) // Permisos de ejecución
             {
                 strcat(buffer, "x");
@@ -347,23 +340,13 @@ int mi_dir(const char *camino, char *buffer)
             else
             {
                 strcat(buffer, "-");
-                strcat(buffer, "\t");
             }
 
             // Modificamos el valor del tiempo
+            struct tm *tm;
             tm = localtime(&inodo.mtime);
             sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
             strcat(buffer, tmp);
-            strcat(buffer, "\t");
-
-            // Modificamos el tamaño
-            sprintf(tam, "%d", inodo.tamEnBytesLog);
-            strcat(buffer, tam);
-            strcat(buffer, "\t");
-
-            // Modificamos el nombre
-            strcat(buffer, entrada.nombre);
-            strcat(buffer, "\n");
         }
         return numEntradas;
     }
