@@ -1,9 +1,9 @@
 #include "ficheros_basico.h"
 
 /**
-*   Calcula el tamaño en bloques necesario para el mapa de bits.   
-*   nbloques: numero total de bloques   
-*/
+ *   Calcula el tamaño en bloques necesario para el mapa de bits.
+ *   nbloques: numero total de bloques
+ */
 int tamMB(unsigned int nbloques)
 {
     int tam = nbloques / 8;
@@ -20,9 +20,9 @@ int tamMB(unsigned int nbloques)
 }
 
 /**
-*   Calcula el tamaño en bloques del array de inodos.
-*   ninodos: numero total de inodos 
-*/
+ *   Calcula el tamaño en bloques del array de inodos.
+ *   ninodos: numero total de inodos
+ */
 int tamAI(unsigned int ninodos)
 {
     int tam = ninodos * INODOSIZE;
@@ -39,10 +39,10 @@ int tamAI(unsigned int ninodos)
 }
 
 /**
-*   Inicializa los datos del superbloque.
-*   nbloques: numero total de bloques
-*   ninodos: numero total de inodos 
-*/
+ *   Inicializa los datos del superbloque.
+ *   nbloques: numero total de bloques
+ *   ninodos: numero total de inodos
+ */
 int initSB(unsigned int nbloques, unsigned int ninodos)
 { // Superbloques
     struct superbloque SB;
@@ -57,34 +57,33 @@ int initSB(unsigned int nbloques, unsigned int ninodos)
 
     SB.cantBloquesLibres = nbloques;
     SB.cantInodosLibres = ninodos;
-    
+
     SB.totBloques = nbloques;
     SB.totInodos = ninodos;
 
     // Escribir la estructura en el bloque posSB
     if (bwrite(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al escribir el superbloque en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al escribir el superbloque en el disco.\n" RESET);
         return FALLO;
     }
 
     return EXITO;
 }
 
-
 /**
-*
-*
-*
-*/
+ *
+ *
+ *
+ */
 int block_size(int bytes)
 {
     return (bytes + BLOCKSIZE - 1) / BLOCKSIZE;
 }
 
 /**
-*   Inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos   
-*/
+ *   Inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos
+ */
 int initMB()
 { // Mapa de bits
     struct superbloque SB;
@@ -92,7 +91,7 @@ int initMB()
     // Leer el superbloque para obtener información relevante
     if (bread(posSB, &SB) < 0)
     {
-        perror(RED "Error al leer el superbloque en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque en el disco.\n" RESET);
         return FALLO;
     }
 
@@ -124,7 +123,7 @@ int initMB()
     {
         if (bwrite(SB.posPrimerBloqueMB + i, &bitmap[i * BLOCKSIZE]) == FALLO)
         {
-            perror(RED "Error al escribir un bloque en initMB");
+            fprintf(stderr, RED "Error al escribir un bloque en initMB");
             return FALLO;
         }
     }
@@ -133,22 +132,23 @@ int initMB()
     SB.cantBloquesLibres -= nBloquesMetadatos;
 
     // Escribir el superbloque actualizado en el disco
-    if(bwrite(posSB, &SB) == FALLO){
-        perror(RED "Error al escribir el superbloque actualizado en initMB" RESET);
+    if (bwrite(posSB, &SB) == FALLO)
+    {
+        fprintf(stderr, RED "Error al escribir el superbloque actualizado en initMB" RESET);
     }
 
     return EXITO;
 }
 
 /**
-*   inicializar la lista de inodos libres
-*/
+ *   inicializar la lista de inodos libres
+ */
 int initAI()
 { // Array Inodos
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al leer el superbloque en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque en el disco.\n" RESET);
         return FALLO;
     }
 
@@ -161,7 +161,7 @@ int initAI()
         // leer el bloque de inodos en el dispositivo virtual
         if (bread(idx, inodos) == FALLO)
         {
-            perror(RED "Error al leer el bloque de inodos en el disco.\n" RESET);
+            fprintf(stderr, RED "Error al leer el bloque de inodos en el disco.\n" RESET);
             return FALLO;
         }
 
@@ -184,7 +184,7 @@ int initAI()
         // Escribir el bloque de inodos en el dispositivo virtual
         if (bwrite(idx, inodos) == FALLO)
         {
-            perror(RED "Error al leer el superbloque en el disco.\n" RESET);
+            fprintf(stderr, RED "Error al leer el superbloque en el disco.\n" RESET);
             return FALLO;
         }
     }
@@ -194,16 +194,16 @@ int initAI()
 // NIVEL 3
 
 /**
-*   Escribe el valor indicado por bit en un bloque del MB
-*   nbloque: nº de bloque a escribir
-*   bit: valor 0 o 1 a escribir
-*/
+ *   Escribe el valor indicado por bit en un bloque del MB
+ *   nbloque: nº de bloque a escribir
+ *   bit: valor 0 o 1 a escribir
+ */
 int escribir_bit(unsigned int nbloque, unsigned int bit)
 {
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al leer el superbloque.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque.\n" RESET);
         return FALLO;
     }
 
@@ -214,7 +214,7 @@ int escribir_bit(unsigned int nbloque, unsigned int bit)
     unsigned char bufferMB[BLOCKSIZE];
     if (bread(nbloqueabs, bufferMB) == FALLO)
     {
-        perror(RED "Error al leer el bloque de datos en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al leer el bloque de datos en el disco.\n" RESET);
         return FALLO;
     }
     posbyte = posbyte % BLOCKSIZE;
@@ -231,23 +231,23 @@ int escribir_bit(unsigned int nbloque, unsigned int bit)
 
     if (bwrite(nbloqueabs, bufferMB) == FALLO)
     {
-        perror(RED "Error al escribir el bit" RESET);
+        fprintf(stderr, RED "Error al escribir el bit" RESET);
         return FALLO;
     }
     return EXITO;
 }
 
 /**
-*   Lee un determinado bit del MB y devuelve el valor del bit leído.
-*   nbloque: nº de bloque a leer el bit
-*/
+ *   Lee un determinado bit del MB y devuelve el valor del bit leído.
+ *   nbloque: nº de bloque a leer el bit
+ */
 char leer_bit(unsigned int nbloque)
 {
     // Leer el superbloque para obtener la localización del MB.
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al leer el superbloque.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque.\n" RESET);
         return FALLO;
     }
 
@@ -258,7 +258,7 @@ char leer_bit(unsigned int nbloque)
     unsigned char bufferMB[BLOCKSIZE];
     if (bread(nbloqueabs, bufferMB) == FALLO)
     {
-        perror(RED "Error al leer el bloque de datos en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al leer el bloque de datos en el disco.\n" RESET);
         return FALLO;
     }
     posbyte = posbyte % BLOCKSIZE;
@@ -270,16 +270,16 @@ char leer_bit(unsigned int nbloque)
 }
 
 /**
-*   Encuentra el primer bloque libre, consultando el MB (primer bit a 0),
-*   lo ocupa (poniendo el correspondiente bit a 1 con la ayuda de la función escribir_bit()) y devuelve su posición.
-*/
+ *   Encuentra el primer bloque libre, consultando el MB (primer bit a 0),
+ *   lo ocupa (poniendo el correspondiente bit a 1 con la ayuda de la función escribir_bit()) y devuelve su posición.
+ */
 int reservar_bloque()
 {
     struct superbloque SB;
     // Leer el superbloque
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al leer el superbloque en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque en el disco.\n" RESET);
         return FALLO;
     }
 
@@ -292,7 +292,7 @@ int reservar_bloque()
     // Comprobar si quedan bloques libres
     if (SB.cantBloquesLibres <= 0)
     {
-        perror(RED "No quedan bloques libres en el disco.\n" RESET);
+        fprintf(stderr, RED "No quedan bloques libres en el disco.\n" RESET);
         return FALLO;
     }
 
@@ -302,7 +302,7 @@ int reservar_bloque()
         // Leer el bloque del mapa de bits
         if (bread(nbloqueMB + SB.posPrimerBloqueMB, bufferMB) == FALLO)
         {
-            perror(RED "Error al leer un bloque del mapa de bits en reservar_bloque.\n" RESET);
+            fprintf(stderr, RED "Error al leer un bloque del mapa de bits en reservar_bloque.\n" RESET);
             return FALLO;
         }
 
@@ -339,7 +339,7 @@ int reservar_bloque()
     // Marcar el bloque como reservado
     if (escribir_bit(nbloque, 1) == FALLO)
     {
-        perror(RED "Error al escribir un bit en reservar_bloque.\n" RESET);
+        fprintf(stderr, RED "Error al escribir un bit en reservar_bloque.\n" RESET);
         return FALLO;
     }
 
@@ -349,7 +349,7 @@ int reservar_bloque()
     // Guardar el superbloque actualizado
     if (bwrite(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al guardar el superbloque actualizado en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al guardar el superbloque actualizado en el disco.\n" RESET);
         return FALLO;
     }
 
@@ -358,7 +358,7 @@ int reservar_bloque()
     memset(bufferDatos, 0, BLOCKSIZE);
     if (bwrite(nbloque, bufferDatos) == FALLO)
     {
-        perror(RED "Error al limpiar el bloque %d en la zona de datos.\n" RESET);
+        fprintf(stderr, RED "Error al limpiar el bloque %d en la zona de datos.\n" RESET, nbloque);
         return FALLO;
     }
 
@@ -367,22 +367,22 @@ int reservar_bloque()
 }
 
 /**
-*   Libera un bloque determinado
-*   nbloque: bloque a liberar
-*/
+ *   Libera un bloque determinado
+ *   nbloque: bloque a liberar
+ */
 int liberar_bloque(unsigned int nbloque)
 {
     struct superbloque SB;
     // Leer el superbloque para obtener información relevante
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al leer el superbloque en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque en el disco.\n" RESET);
         return FALLO;
     }
 
     if (escribir_bit(nbloque, 0) == FALLO)
     {
-        perror(RED "Error al escribir el bit en la posición %d.\n" RESET);
+        fprintf(stderr, RED "Error al escribir el bit en la posición %d.\n" RESET, nbloque);
         return FALLO;
     }
 
@@ -392,7 +392,7 @@ int liberar_bloque(unsigned int nbloque)
     // Escribir el superbloque actualizado en el dispositivo
     if (bwrite(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al escribir el superbloque en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al escribir el superbloque en el disco.\n" RESET);
         return FALLO;
     }
 
@@ -401,17 +401,17 @@ int liberar_bloque(unsigned int nbloque)
 }
 
 /*
-*   Escribe el contenido de una variable de tipo struct inodo, pasada por referencia, 
-*   en un determinado inodo del array de inodos, inodos.
-*   ninodo: numero total de inodos
-*   inodo: inodo a escribir
-*/
+ *   Escribe el contenido de una variable de tipo struct inodo, pasada por referencia,
+ *   en un determinado inodo del array de inodos, inodos.
+ *   ninodo: numero total de inodos
+ *   inodo: inodo a escribir
+ */
 int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
 {
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error en escribir_inodo al leer el superbloque." RESET);
+        fprintf(stderr, RED "Error en escribir_inodo al leer el superbloque." RESET);
         return FALLO;
     }
 
@@ -423,7 +423,7 @@ int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
     if (bread(nbloqueAbs, inodos) == FALLO)
     {
         // Error al leer el bloque
-        perror(RED "Error en escribir_inodo al leer el bloque." RESET);
+        fprintf(stderr, RED "Error en escribir_inodo al leer el bloque." RESET);
         return FALLO;
     }
 
@@ -433,24 +433,24 @@ int escribir_inodo(unsigned int ninodo, struct inodo *inodo)
     if (bwrite(nbloqueAbs, inodos) == FALLO)
     {
         // Error al escribir el bloque
-        perror(RED "Error en escribir_inodo al escribir el bloque." RESET);
+        fprintf(stderr, RED "Error en escribir_inodo al escribir el bloque." RESET);
         return FALLO;
     }
     return EXITO;
 }
 
 /**
-*Lee un determinado inodo del array de inodos para volcarlo en 
-*una variable de tipo struct inodo pasada por referencia.
-* ninodo: numero total de inodos
-* inodo: inodo donde se almacena lo leido
-*/
+ *Lee un determinado inodo del array de inodos para volcarlo en
+ *una variable de tipo struct inodo pasada por referencia.
+ * ninodo: numero total de inodos
+ * inodo: inodo donde se almacena lo leido
+ */
 int leer_inodo(unsigned int ninodo, struct inodo *inodo)
 {
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error en leer_inodo al leer el superbloque." RESET);
+        fprintf(stderr, RED "Error en leer_inodo al leer el superbloque." RESET);
         return FALLO;
     }
 
@@ -463,7 +463,7 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo)
     if (bread(nbloqueAbs, inodos) == FALLO)
     {
         // Error al leer el bloque
-        perror(RED "Error en escribir_inodo al leer el bloque." RESET);
+        fprintf(stderr, RED "Error en escribir_inodo al leer el bloque." RESET);
         return FALLO;
     }
 
@@ -473,23 +473,23 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo)
 }
 
 /**
-*Encuentra el primer inodo libre,lo reserva, devuelve su número y
-* actualiza la lista enlazada de inodos libres.
-*   tipo: tipo del inodo a reservar
-*   permisos:  permisos del inodo a reservar
-*/
+ *Encuentra el primer inodo libre,lo reserva, devuelve su número y
+ * actualiza la lista enlazada de inodos libres.
+ *   tipo: tipo del inodo a reservar
+ *   permisos:  permisos del inodo a reservar
+ */
 int reservar_inodo(unsigned char tipo, unsigned char permisos)
 {
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error en reservar_inodo al leer el superbloque." RESET);
+        fprintf(stderr, RED "Error en reservar_inodo al leer el superbloque." RESET);
         return FALLO;
     }
 
     if (SB.cantInodosLibres <= 0) // Si no quedan inodos libres, invocamos une error
     {
-        perror(RED "Error en reservar_inodo. No hay ningun inodo libre." RESET);
+        fprintf(stderr, RED "Error en reservar_inodo. No hay ningun inodo libre." RESET);
         return FALLO;
     }
 
@@ -517,7 +517,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
 
     if (escribir_inodo(posInodoReservado, &inodo) == FALLO) // Escribimos el inodo que acabamos de reservar e inicializar
     {
-        perror(RED "Error en reservar_inodo al escribir el inodo." RESET);
+        fprintf(stderr, RED "Error en reservar_inodo al escribir el inodo." RESET);
         return FALLO;
     }
 
@@ -526,20 +526,19 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
 
     if (bwrite(posSB, &SB) == FALLO)
     { // Sobreescribimos los cambios realizados en el superbloque
-        perror(RED "Error en reservar_inodo al escribir en el superbloque." RESET);
+        fprintf(stderr, RED "Error en reservar_inodo al escribir en el superbloque." RESET);
         return FALLO;
     }
     return posInodoReservado; // La posición es relativa al Array de Inodos, no a la posición absoluta de todos los bloques
 }
 
-
 // NIVEL 4
 
 /* Obtenemos el rango de punteros en el que se situa el bloque lógico que buscamos, y la dirección almacenada en el inodo
-* inodo: inodo del cual queremos obtener su direccion almacenada
-* nblogico: bloque lógico del cual hay que obtener su rango de punteros
-* ptr: para obtener la dirección almacenada en el inodo
-*/
+ * inodo: inodo del cual queremos obtener su direccion almacenada
+ * nblogico: bloque lógico del cual hay que obtener su rango de punteros
+ * ptr: para obtener la dirección almacenada en el inodo
+ */
 int obtener_nRangoBL(struct inodo *inodo, unsigned int nblogico, unsigned int *ptr)
 {
 
@@ -566,15 +565,15 @@ int obtener_nRangoBL(struct inodo *inodo, unsigned int nblogico, unsigned int *p
     else
     {
         *ptr = 0;
-        perror(RED "Bloque lógico fuera de rango" RESET);
+        fprintf(stderr, RED "Bloque lógico fuera de rango" RESET);
         return FALLO;
     }
 }
 
 /* Devolvemos el índice de los bloques de punteros
-* nblogico: nº del bloque lógico a localizar
-* nivel_punteros: simplemente el nivel de los punteros
-*/
+ * nblogico: nº del bloque lógico a localizar
+ * nivel_punteros: simplemente el nivel de los punteros
+ */
 int obtener_indice(unsigned int nblogico, int nivel_punteros)
 {
     if (nblogico < DIRECTOS)
@@ -615,10 +614,10 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros)
 }
 
 /* Se obtiene el nº de bloque físico correspondiente a un bloque lógico del inodo indicado
-* inodo: inodo del cual obtendremos el bloque lógico
-* nblogico: nº de bloque lógico del cual hay que obtener el número de bloque físico
-* reservar: para determinar si el bloque existe o no
-*/
+ * inodo: inodo del cual obtendremos el bloque lógico
+ * nblogico: nº de bloque lógico del cual hay que obtener el número de bloque físico
+ * reservar: para determinar si el bloque existe o no
+ */
 int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned char reservar)
 {
     // Inicializamos las variables
@@ -626,7 +625,7 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
     int nRangoBL = obtener_nRangoBL(inodo, nblogico, &ptr); // 0:D, 1:I0, 2:I1, 3:I2
     if (nRangoBL == FALLO)
     {
-        perror(RED "Error al obtener el rango en traducir_bloque_inodo." RESET);
+        fprintf(stderr, RED "Error al obtener el rango en traducir_bloque_inodo." RESET);
         return FALLO;
     }
     int nivel_punteros = nRangoBL; // el nivel_punteros +alto es el que cuelga directamente del inodo
@@ -647,7 +646,7 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
                 ptr = reservar_bloque(); // de punteros
                 if (ptr == FALLO)
                 {
-                    perror(RED "Error al intentar reservar el bloque en traducir_bloque_inodo." RESET);
+                    fprintf(stderr, RED "Error al intentar reservar el bloque en traducir_bloque_inodo." RESET);
                     return FALLO;
                 }
 
@@ -656,7 +655,7 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
 
                 if (nivel_punteros == nRangoBL) // el bloque cuelga directamente del inodo
                 {
-                 printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n" RESET, (nivel_punteros - 1), ptr, ptr, nivel_punteros);
+                    // printf(GRAY "[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n" RESET, (nivel_punteros - 1), ptr, ptr, nivel_punteros);
                     inodo->punterosIndirectos[nRangoBL - 1] = ptr;
                 }
                 else // el bloque cuelga de otro bloque de punteros
@@ -664,11 +663,11 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
                     buffer[indice] = ptr;
                     if (bwrite(ptr_ant, buffer) == FALLO) // salvamos en el dispositivo el buffer de punteros modificado
                     {
-                        perror(RED "Error al intentar escribir en el buffer de punteros modificado en traducir_bloque_inodo." RESET);
+                        fprintf(stderr, RED "Error al intentar escribir en el buffer de punteros modificado en traducir_bloque_inodo." RESET);
                         return FALLO;
                     }
 
-                     printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %d (reservado BF %d para punteros_nivel%d)]\n" RESET, (nivel_punteros + 1), indice, ptr, ptr, nivel_punteros);
+                    // printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %d (reservado BF %d para punteros_nivel%d)]\n" RESET, (nivel_punteros + 1), indice, ptr, ptr, nivel_punteros);
                 }
 
                 memset(buffer, 0, BLOCKSIZE); // ponemos a 0 todos los punteros del buffer
@@ -678,7 +677,7 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
         {
             if (bread(ptr, buffer) == FALLO) // leemos del dispositivo el bloque de punteros ya existente
             {
-                perror(RED "Error al intentar leer el dispositivo del bloque de punteros en traducir_bloque_inodo." RESET);
+                fprintf(stderr, RED "Error al intentar leer el dispositivo del bloque de punteros en traducir_bloque_inodo." RESET);
                 return FALLO;
             }
         }
@@ -686,7 +685,7 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
         indice = obtener_indice(nblogico, nivel_punteros);
         if (indice == FALLO)
         {
-            perror(RED "Error al obtener el índice en traducir_bloque_inodo." RESET);
+            fprintf(stderr, RED "Error al obtener el índice en traducir_bloque_inodo." RESET);
             return FALLO;
         }
         ptr_ant = ptr;        // guardamos el puntero actual
@@ -707,7 +706,7 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
 
             if (ptr == FALLO)
             {
-                perror(RED "Error al reservar el bloque en traducir_bloque_inodo." RESET);
+                fprintf(stderr, RED "Error al reservar el bloque en traducir_bloque_inodo." RESET);
                 return FALLO;
             }
             inodo->numBloquesOcupados++;
@@ -715,18 +714,18 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
 
             if (nRangoBL == 0) // si era un puntero Directo
             {
-                 printf(GRAY "traducir_bloque_inodo()→ inodo.punterosDirectos[%d] = %d (reservado BF %d para BL %d)]\n" RESET, nblogico, ptr, ptr, nblogico);
+                // printf(GRAY "traducir_bloque_inodo()→ inodo.punterosDirectos[%d] = %d (reservado BF %d para BL %d)]\n" RESET, nblogico, ptr, ptr, nblogico);
                 inodo->punterosDirectos[nblogico] = ptr; // asignamos la direción del bl. de datos en el inodo
             }
             else
             {
-                 printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %d (reservado BF %d para BL %d)]\n" RESET, (nivel_punteros + 1), indice, ptr, ptr, nblogico);
+                // printf(GRAY "[traducir_bloque_inodo()→ punteros_nivel%d [%d] = %d (reservado BF %d para BL %d)]\n" RESET, (nivel_punteros + 1), indice, ptr, ptr, nblogico);
 
                 buffer[indice] = ptr; // asignamos la dirección del bloque de datos en el buffer
 
                 if (bwrite(ptr_ant, buffer) == FALLO) // salvamos en el dispositivo el buffer de punteros modificado
                 {
-                    perror(RED "Error al salvar en el dispositivo el buffer de punteros modificado en traducir_bloque_inodo" RESET);
+                    fprintf(stderr, RED "Error al salvar en el dispositivo el buffer de punteros modificado en traducir_bloque_inodo" RESET);
                     return FALLO;
                 }
             }
@@ -738,22 +737,22 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
 // NIVEL 6
 
 /*
-*   Liberamos un inodo y pasa a ser el primero en la lista de inodos libres  
-*   ninodo: nº de inodo a liberar
-*/
+ *   Liberamos un inodo y pasa a ser el primero en la lista de inodos libres
+ *   ninodo: nº de inodo a liberar
+ */
 int liberar_inodo(unsigned int ninodo)
 {
     struct inodo inodo;
     if (leer_inodo(ninodo, &inodo) == FALLO)
     { // Leemos el inodo indicado por parámetro
-        perror(RED "Error al leer el inodo en liberar_inodo." RESET);
+        fprintf(stderr, RED "Error al leer el inodo en liberar_inodo." RESET);
         return FALLO;
     }
 
     int bloq_liber = liberar_bloques_inodo(0, &inodo); // Liberamos todos los bloques del inodo (primerBL = 0 porque los liberamos todos [empezamos desde el primer bloque])
     if (bloq_liber == FALLO)
     {
-        perror(RED "Error al liberar los bloques en liberar_inodo." RESET);
+        fprintf(stderr, RED "Error al liberar los bloques en liberar_inodo." RESET);
         return FALLO;
     }
 
@@ -766,7 +765,7 @@ int liberar_inodo(unsigned int ninodo)
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     { // Leemos el superbloque
-        perror(RED "Error al leer el superbloque en liberar_inodo." RESET);
+        fprintf(stderr, RED "Error al leer el superbloque en liberar_inodo." RESET);
         return FALLO;
     }
 
@@ -777,25 +776,24 @@ int liberar_inodo(unsigned int ninodo)
 
     if (bwrite(posSB, &SB) == FALLO)
     { // Escribimos el superbloque
-        perror(RED "Error al escribir el superbloque en liberar_inodo." RESET);
+        fprintf(stderr, RED "Error al escribir el superbloque en liberar_inodo." RESET);
         return FALLO;
     }
 
     inodo.ctime = time(NULL); // Actualizamos el ctime
     if (escribir_inodo(ninodo, &inodo) == FALLO)
     { // Escribimos el inodo liberado
-        perror(RED "Error al escribir el inodo en liberar_inodo." RESET);
+        fprintf(stderr, RED "Error al escribir el inodo en liberar_inodo." RESET);
         return FALLO;
     }
 
     return ninodo; // Devolvemos el número de inodo liberado
 }
 
-
 /* Libera todos los bloques ocupados a partir del bloque lógico indicado por primerBL
-* primerBL: indica a partir de qué bloque hay que empezar a liberar (incluido)
-* inodo: el inodo del cual vamos a borrar sus bloques
-*/
+ * primerBL: indica a partir de qué bloque hay que empezar a liberar (incluido)
+ * inodo: el inodo del cual vamos a borrar sus bloques
+ */
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
 {
     // libera los bloques de datos e índices iterando desde el primer bloque lógico a liberar hasta el último
@@ -827,7 +825,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
     }
 
     memset(bufAux_punteros, 0, BLOCKSIZE);
-    printf(GRAY "[liberar_bloques_inodo()→ primer BL: %d, último BL: %d]\n", primerBL, ultimoBL);
+    // printf(GRAY "[liberar_bloques_inodo()→ primer BL: %d, último BL: %d]\n", primerBL, ultimoBL);
     for (nBL = primerBL; nBL <= ultimoBL; nBL++)
     { // recorrido BLs
 
@@ -835,7 +833,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
 
         if (nRangoBL == FALLO)
         {
-            perror(RED "Error al obtener el nRangoBL en liberar_bloques_inodo." RESET);
+            fprintf(stderr, RED "Error al obtener el nRangoBL en liberar_bloques_inodo." RESET);
             return FALLO;
         }
 
@@ -847,7 +845,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
 
             if (indice == FALLO)
             {
-                perror(RED "Error al obtener el indice en liberar_bloques_inodo." RESET);
+                fprintf(stderr, RED "Error al obtener el indice en liberar_bloques_inodo." RESET);
                 return FALLO;
             }
 
@@ -867,12 +865,12 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
         { // si existe bloque de datos
             if (liberar_bloque(ptr) == FALLO)
             { // de datos
-                perror(RED "Error al liberar el bloque apuntado por ptr 1 en liberar_bloques_inodo." RESET);
+                fprintf(stderr, RED "Error al liberar el bloque apuntado por ptr 1 en liberar_bloques_inodo." RESET);
                 return FALLO;
             }
             liberados++;
 
-            printf(GRAY "[liberar_bloques_inodo()→ liberado BF %d de datos para BL: %d]\n", ptr, nBL);
+            // printf(GRAY "[liberar_bloques_inodo()→ liberado BF %d de datos para BL: %d]\n", ptr, nBL);
             if (nRangoBL == 0)
             { // es un puntero Directo
                 inodo->punterosDirectos[nBL] = 0;
@@ -892,12 +890,12 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
                         // No cuelgan más bloques ocupados, hay que liberar el bloque de punteros
                         if (liberar_bloque(ptr) == FALLO)
                         { // Liberamos el bloque de punteros
-                            perror(RED "Error al liberar el bloque apuntado por ptr 2 en liberar_bloques_inodo." RESET);
+                            fprintf(stderr, RED "Error al liberar el bloque apuntado por ptr 2 en liberar_bloques_inodo." RESET);
                             return FALLO;
                         }
                         liberados++;
 
-                        printf(GRAY "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d correspondiente al BL: %d]\n", ptr, nivel_punteros, nBL);
+                        // printf(GRAY "[liberar_bloques_inodo()→ liberado BF %d de punteros_nivel%d correspondiente al BL: %d]\n", ptr, nivel_punteros, nBL);
 
                         if (nivel_punteros == nRangoBL)
                         {
@@ -910,7 +908,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
                     { // escribimos en el dispositivo el bloque de punteros modificado
                         if (bwrite(ptr, bloques_punteros[nivel_punteros - 1]) == FALLO)
                         {
-                            perror(RED "Error al escribir el bloque en liberar_bloques_inodo." RESET);
+                            fprintf(stderr, RED "Error al escribir el bloque en liberar_bloques_inodo." RESET);
                             return FALLO;
                         }
                         // hemos de salir del bucle ya que no será necesario liberar los bloques de niveles
@@ -921,6 +919,6 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
             }
         }
     }
-    printf(GRAY "liberados: %d\n", liberados);
+    // printf(GRAY "liberados: %d\n", liberados);
     return liberados;
 }

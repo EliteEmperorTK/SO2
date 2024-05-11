@@ -1,14 +1,14 @@
 #include "ficheros.h"
 
 /* args: cantidad de argumentos
-* argv: lista de argumentos: [1] = nombre del dispositivo; [2] = nº inodo que vamos a truncar; [3] = cantidad de bytes hasta la que vamos a truncar
-*/
+ * argv: lista de argumentos: [1] = nombre del dispositivo; [2] = nº inodo que vamos a truncar; [3] = cantidad de bytes hasta la que vamos a truncar
+ */
 int main(int args, char **argv)
 {
     // Validación sintaxis
     if (args != 4)
     {
-        perror(RED "Sintaxis incorrecta, sintaxis correcta: truncar <nombre_dispositivo> <ninodo> <nbytes>\n" RESET);
+        fprintf(stderr, RED "Sintaxis incorrecta, sintaxis correcta: truncar <nombre_dispositivo> <ninodo> <nbytes>\n" RESET);
         return FALLO;
     }
 
@@ -19,14 +19,14 @@ int main(int args, char **argv)
     // Montar dispositivo
     if (bmount(nombre_dispositivo) == FALLO)
     {
-        perror(RED "Error en truncar.c, al ejecutar bmount\n" RESET);
+        fprintf(stderr, RED "Error en truncar.c, al ejecutar bmount\n" RESET);
         return FALLO;
     }
 
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al leer el superbloque.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque.\n" RESET);
         bumount();
         return FALLO;
     }
@@ -37,22 +37,25 @@ int main(int args, char **argv)
     // Comprobación mi_truncar_f
     if (nbytes == 0)
     {
-        if(liberar_inodo(ninodo) == FALLO){
-            perror(RED "Error al liberar el inodo en truncar.c" RESET);
+        if (liberar_inodo(ninodo) == FALLO)
+        {
+            fprintf(stderr, RED "Error al liberar el inodo en truncar.c" RESET);
             return FALLO;
         }
     }
     else
     {
-        if(mi_truncar_f(ninodo, nbytes) == FALLO){
-            perror(RED "Error al realizar el mi_truncar_f en truncar.c" RESET);
+        if (mi_truncar_f(ninodo, nbytes) == FALLO)
+        {
+            fprintf(stderr, RED "Error al realizar el mi_truncar_f en truncar.c" RESET);
             return FALLO;
         }
     }
 
     struct STAT stats;
-    if(mi_stat_f(ninodo, &stats) == FALLO){
-        perror(RED "Error al asignar los valores con mi_stat_f en truncar.c");
+    if (mi_stat_f(ninodo, &stats) == FALLO)
+    {
+        fprintf(stderr, RED "Error al asignar los valores con mi_stat_f en truncar.c");
         return FALLO;
     }
 
@@ -78,7 +81,7 @@ int main(int args, char **argv)
     // Desmontar dispositivo
     if (bumount() == FALLO)
     {
-        perror(RED "Error en truncar.c, al ejecutar bumount\n" RESET);
+        fprintf(stderr, RED "Error en truncar.c, al ejecutar bumount\n" RESET);
         return FALLO;
     }
     return EXITO;

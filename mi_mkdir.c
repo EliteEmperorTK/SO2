@@ -1,10 +1,14 @@
 #include "directorios.h"
 
-int main(int argc, char **argv)
+/**
+ *args:
+ *argv:
+ */
+int main(int args, char **argv)
 {
-    if (argc != 4)
+    if (args != 4)
     {
-        perror(RED "Sintaxis introducida incorrecta, sintaxis correcta: './mi_mkdir <disco> <permisos> </ruta>' \n" RESET);
+        fprintf(stderr, RED "Sintaxis: ./mi_mkdir <nombre_dispositivo> <permisos> </ruta_directorio/> \n" RESET);
         return FALLO;
     }
 
@@ -14,7 +18,7 @@ int main(int argc, char **argv)
 
     if (permisos < 0 || permisos > 7)
     { // Comprobacion de permisos
-        fprintf(stderr, RED "ERROR: Permisos incorrectos en mi_mkdir -> permisos = %d\n" RESET, permisos);
+        fprintf(stderr, RED "Error: modo inválido: <<%d>>\n" RESET, permisos);
         return FALLO;
     }
 
@@ -24,15 +28,20 @@ int main(int argc, char **argv)
         return FALLO;
     }
 
-    if (bmount(nombre_dispositivo) == FALLO) //Montamos el dispositivo virtual
+    if (bmount(nombre_dispositivo) == FALLO) // Montamos el dispositivo virtual
     {
-        perror(RED "Error al montar el dispositivo virtual.\n" RESET);
+        fprintf(stderr, RED "Error al montar el dispositivo virtual.\n" RESET);
         return FALLO;
     }
 
-    mi_creat(ruta, permisos);
+    // Creamos el directorio
+    if (mi_creat(ruta, permisos) == FALLO)
+    {
 
-    if (bumount() == FALLO) //Desmontamos el dispositivo virtual
+        return FALLO;
+    }
+
+    if (bumount() == FALLO) // Desmontamos el dispositivo virtual
     {
         fprintf(stderr, "Error al desmontar el dispositivo virtual.\n");
         exit(FALLO);

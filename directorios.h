@@ -11,11 +11,19 @@
 #define TAMFILA 100
 #define TAMBUFFER (TAMFILA * 1000) // suponemos un máx de 1000 entradas, aunque debería ser SB.totInodos
 
-#define TAMNOMBRE 60 // tamaño del nombre de directorio o fichero, en Ext2 = 256
+#define TAMNOMBRE 60   // tamaño del nombre de directorio o fichero
+#define PROFUNDIDAD 32 // profundidad máxima del árbol de directorios
+
 struct entrada
 {
     char nombre[TAMNOMBRE];
     unsigned int ninodo;
+};
+
+struct UltimaEntrada
+{
+    char camino[TAMNOMBRE * PROFUNDIDAD];
+    int p_inodo;
 };
 
 // NIVEL 7
@@ -35,3 +43,13 @@ int mi_dir(const char *camino, char *buffer);
 int mi_chmod(const char *camino, unsigned char permisos);
 
 int mi_stat(const char *camino, struct STAT *p_stat);
+
+// NIVEL 9
+int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes);
+
+int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes);
+
+// NIVEL 10
+int mi_link(const char *camino1, const char *camino2);
+
+int mi_unlink(const char *camino);

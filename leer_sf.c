@@ -15,9 +15,9 @@ void mostrar_buscar_entrada(char *camino, char reservar)
     printf("**********************************************************************\n");
 }
 
-int main(int argc, char **argv)
+int main(int args, char **argv)
 {
-    if (argc != 2)
+    if (args != 2)
     {
         fprintf(stderr, "Uso: %s <nombre_dispositivo>\n", argv[0]);
         return FALLO;
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     // Montar el dispositivo virtual
     if (bmount(nombre_dispositivo) == FALLO)
     {
-        perror(RED "Error al montar el dispositivo virtual.\n" RESET);
+        fprintf(stderr, RED "Error al montar el dispositivo virtual.\n" RESET);
         return FALLO;
     }
 
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     struct superbloque SB;
     if (bread(posSB, &SB) == FALLO)
     {
-        perror(RED "Error al leer el superbloque.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque.\n" RESET);
         bumount();
         return FALLO;
     }
@@ -244,33 +244,31 @@ int main(int argc, char **argv)
     printf("numBloquesOcupados: %d \n\n", inodos.numBloquesOcupados);
     printf("SB.posPrimerInodoLibre = %d \n", SB.posPrimerInodoLibre);
     */
-/*
     /////////////
     // NIVEL 7 //
     /////////////
-
-    // Mostrar creación directorios y errores
-    mostrar_buscar_entrada("pruebas/", 1);           // ERROR_CAMINO_INCORRECTO
-    mostrar_buscar_entrada("/pruebas/", 0);          // ERROR_NO_EXISTE_ENTRADA_CONSULTA
-    mostrar_buscar_entrada("/pruebas/docs/", 1);     // ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO
-    mostrar_buscar_entrada("/pruebas/", 1);          // creamos /pruebas/
-    mostrar_buscar_entrada("/pruebas/docs/", 1);     // creamos /pruebas/docs/
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 1); // creamos /pruebas/docs/doc1
-    mostrar_buscar_entrada("/pruebas/docs/doc1/doc11", 1);
-    // ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO
-    mostrar_buscar_entrada("/pruebas/", 1);          // ERROR_ENTRADA_YA_EXISTENTE
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 0); // consultamos /pruebas/docs/doc1
-    mostrar_buscar_entrada("/pruebas/docs/doc1", 1); // ERROR_ENTRADA_YA_EXISTENTE
-    mostrar_buscar_entrada("/pruebas/casos/", 1);    // creamos /pruebas/casos/
-    mostrar_buscar_entrada("/pruebas/docs/doc2", 1); // creamos /pruebas/docs/doc2
-*/
+    /*
+        // Mostrar creación directorios y errores
+        mostrar_buscar_entrada("pruebas/", 1);           // ERROR_CAMINO_INCORRECTO
+        mostrar_buscar_entrada("/pruebas/", 0);          // ERROR_NO_EXISTE_ENTRADA_CONSULTA
+        mostrar_buscar_entrada("/pruebas/docs/", 1);     // ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO
+        mostrar_buscar_entrada("/pruebas/", 1);          // creamos /pruebas/
+        mostrar_buscar_entrada("/pruebas/docs/", 1);     // creamos /pruebas/docs/
+        mostrar_buscar_entrada("/pruebas/docs/doc1", 1); // creamos /pruebas/docs/doc1
+        mostrar_buscar_entrada("/pruebas/docs/doc1/doc11", 1);
+        // ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO
+        mostrar_buscar_entrada("/pruebas/", 1);          // ERROR_ENTRADA_YA_EXISTENTE
+        mostrar_buscar_entrada("/pruebas/docs/doc1", 0); // consultamos /pruebas/docs/doc1
+        mostrar_buscar_entrada("/pruebas/docs/doc1", 1); // ERROR_ENTRADA_YA_EXISTENTE
+        mostrar_buscar_entrada("/pruebas/casos/", 1);    // creamos /pruebas/casos/
+        mostrar_buscar_entrada("/pruebas/docs/doc2", 1); // creamos /pruebas/docs/doc2
+    */
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
     {
-        perror(RED "Error al desmontar el dispositivo virtual.\n" RESET);
+        fprintf(stderr, RED "Error al desmontar el dispositivo virtual.\n" RESET);
         return FALLO;
     }
 
     return EXITO;
 }
-

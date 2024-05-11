@@ -1,29 +1,41 @@
 #include "directorios.h"
 
-int main(int argc, char **argv)
+int main(int args, char **argv)
 {
-    if (argc != 3)
+    if (args != 3)
     {
-        perror(RED "Sintaxis introducida incorrecta, sintaxis correcta: './mi_stat <disco> </ruta>' \n" RESET);
+        fprintf(stderr, RED "Sintaxis introducida incorrecta, sintaxis correcta: './mi_stat <disco> </ruta>' \n" RESET);
         return FALLO;
     }
 
     const char *nombre_dispositivo = argv[1];
     const char *ruta = argv[2];
 
-    if (bmount(nombre_dispositivo) == FALLO) //Montamos el dispositivo virtual
+    if (bmount(nombre_dispositivo) == FALLO) // Montamos el dispositivo virtual
     {
-        perror(RED "Error al montar el dispositivo virtual.\n" RESET);
+        fprintf(stderr, RED "Error al montar el dispositivo virtual.\n" RESET);
         return FALLO;
     }
 
     struct STAT stat;
 
-    mi_stat(ruta, &stat);
-
-    if (bumount() == FALLO) //Desmontamos el dispositivo virtual
+    if (mi_stat(ruta, &stat) == FALLO)
     {
-        perror(RED "Error al desmontar el dispositivo virtual.\n" RESET);
+        return FALLO;
+    }
+
+    printf("tipo: %c\n", stat.tipo);
+    printf("permisos: %u\n", stat.permisos);
+    printf("atime: %s", ctime(&stat.atime));
+    printf("ctime: %s", ctime(&stat.ctime));
+    printf("mtime: %s", ctime(&stat.mtime));
+    printf("nlinks: %u\n", stat.nlinks);
+    printf("tamEnBytesLog: %u\n", stat.tamEnBytesLog);
+    printf("numBloquesOcupados: %u\n", stat.numBloquesOcupados);
+
+    if (bumount() == FALLO) // Desmontamos el dispositivo virtual
+    {
+        fprintf(stderr, RED "Error al desmontar el dispositivo virtual.\n" RESET);
         return FALLO;
     }
 
