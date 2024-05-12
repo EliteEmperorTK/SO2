@@ -72,56 +72,44 @@ int initSB(unsigned int nbloques, unsigned int ninodos)
 }
 
 /**
- *
- *
- *
- */
-int block_size(int bytes)
-{
-    return (bytes + BLOCKSIZE - 1) / BLOCKSIZE;
-}
-
-/**
  *   Inicializa el mapa de bits poniendo a 1 los bits que representan los metadatos
  */
 int initMB()
 { // Mapa de bits
     struct superbloque SB;
 
-    // Leer el superbloque para obtener información relevante
-    if (bread(posSB, &SB) < 0)
+    // Leemos el superbloque para obtener información relevante
+    if (bread(posSB, &SB) == FALLO)
     {
-        fprintf(stderr, RED "Error al leer el superbloque en el disco.\n" RESET);
+        fprintf(stderr, RED "Error al leer el superbloque en initMB.\n" RESET);
         return FALLO;
     }
 
-    // numero de bloques que ocupan los metadatos
-    const int nBloquesMetadatos = tamMB(SB.totBloques) + tamAI(SB.totInodos) + tamSB;
+    // Cantidad de bloques que ocupan los metadatos
+    int nBloquesMetadatos = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
 
-    // Calcular el tamaño del mapa de bits necesario en bytes
-    // numero de bytes que ocupan los metadatos
-    const int nBytesMetadatos = nBloquesMetadatos / 8;
-    // numero de bits extra
-    const int nExtraBitsMetadatos = nBloquesMetadatos % 8;
+    // Calculamos el tamaño del mapa de bits necesario en bytes
+    int cantBytes = nBloquesMetadatos / 8;  // Bytes completos que ocupan los metadatos
+    int bitsExtras = nBloquesMetadatos % 8; // Bits extra
 
-    // Calcular el tamaño del bloque del mapa de bits y el tamaño total en bytes
-    const int bitmap_block_size = block_size(nBytesMetadatos + (nExtraBitsMetadatos > 0));
-    const int bitmap_byte_size = bitmap_block_size * BLOCKSIZE;
+    int tamBloqueMB = (cantBytes + bitsExtras + BLOCKSIZE - 1) / BLOCKSIZE; // Tamaño del bloque de mapa de bits
+
+    int tamBytesMB = tamBloqueMB * BLOCKSIZE; // Tamaño total del mapa de bits en bytes
 
     // Crear un buffer para almacenar el mapa de bits en memoria
-    unsigned char bitmap[bitmap_byte_size];
+    char bitmap[tamBytesMB];
 
     // Llenar los bytes correspondientes a los metadatos con 1s
-    memset(bitmap, 255, nBytesMetadatos);
+    memset(bitmap, 255, cantBytes);
 
     // Llenar el último byte parcial con 1s y 0s según los bits restantes de los metadatos
-    memset(bitmap + nBytesMetadatos + 1, 0, bitmap_byte_size - nBytesMetadatos);
-    bitmap[nBytesMetadatos] = 255 << (8 - nExtraBitsMetadatos);
+    memset(bitmap + cantBytes + 1, 0, tamBytesMB - cantBytes);
+    bitmap[cantBytes] = 255 << (8 - bitsExtras);
 
     // Escribir el mapa de bits en el disco
-    for (int i = 0; i < bitmap_block_size; ++i)
+    for (int idx = 0; idx < tamBloqueMB; ++idx)
     {
-        if (bwrite(SB.posPrimerBloqueMB + i, &bitmap[i * BLOCKSIZE]) == FALLO)
+        if (bwrite(SB.posPrimerBloqueMB + idx, &bitmap[idx * BLOCKSIZE]) == FALLO)
         {
             fprintf(stderr, RED "Error al escribir un bloque en initMB");
             return FALLO;
@@ -135,8 +123,8 @@ int initMB()
     if (bwrite(posSB, &SB) == FALLO)
     {
         fprintf(stderr, RED "Error al escribir el superbloque actualizado en initMB" RESET);
+        return FALLO;
     }
-
     return EXITO;
 }
 
