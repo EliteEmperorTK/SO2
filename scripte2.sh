@@ -41,24 +41,24 @@ echo -e "\x1B[38;2;17;245;120m##################################################
 echo -e "\x1B[38;2;17;245;120m$ ./mi_chmod disco 1 /dir1/dir11/ #cambio a permiso ejecución\x1b[0m"
 ./mi_chmod disco 1 /dir1/dir11/  
 echo
-echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic111 #Error: Permiso denegado de lectura.\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_touch( cambiado a mi_mkdir) disco 6 /dir1/dir11/fic111 #Error: Permiso denegado de lectura.\x1b[0m"
 ./mi_mkdir disco 6 /dir1/dir11/fic111  
 echo
 echo -e "\x1B[38;2;17;245;120m######################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_chmod disco 2 /dir1/dir11/ #cambio a permiso escritura\x1b[0m"
 ./mi_chmod disco 2 /dir1/dir11/  
 echo
-echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic111 #Error: Permiso denegado de lectura.\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_touch( cambiado a mi_mkdir) disco 6 /dir1/dir11/fic111 #Error: Permiso denegado de lectura.\x1b[0m"
 ./mi_mkdir disco 6 /dir1/dir11/fic111  
 echo
 echo -e "\x1B[38;2;17;245;120m######################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_chmod disco 6 /dir1/dir11/ #cambio a permiso lectura/escritura\x1b[0m"
 ./mi_chmod disco 6 /dir1/dir11/   
 echo
-echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic111\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_touch (cambiado a mi_mkdir) disco 6 /dir1/dir11/fic111\x1b[0m"
 ./mi_mkdir disco 6 /dir1/dir11/fic111 
 echo 
-echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic112\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_touch (cambiado a mi_mkdir) disco 6 /dir1/dir11/fic112\x1b[0m"
 ./mi_mkdir disco 6 /dir1/dir11/fic112  
 echo
 echo -e "\x1B[38;2;17;245;120m"
@@ -90,15 +90,19 @@ echo -e "\x1B[38;2;17;245;120m$ ./mi_ls disco /dir1/dir12/ #Error: No existe el 
 ./mi_ls disco /dir1/dir12/
 echo
 echo -e "\x1B[38;2;17;245;120m######################################################################\x1b[0m"
-echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic111 #Error: El archivo ya existe.\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_touch (cambiado a mi_mkdir) disco 6 /dir1/dir11/fic111 #Error: El archivo ya existe.\x1b[0m"
 ./mi_mkdir disco 6 /dir1/dir11/fic111  
 echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_mkdir disco 6 /dir1/dir11/fic111/dir12/ #Error: No es un directorio.\x1b[0m"
 ./mi_mkdir disco 6 /dir1/dir11/fic111/dir12/
 echo
-echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/dir12/fic111 #Error: No existe algún directorio intermedio.\x1b[0m"
-./mi_mkdir disco 6 /dir1/dir11/dir12/fic111
-echo
+
+#esto nos hace reservar un inodo mas y despues todo da mal entonces
+#
+
+#echo -e "\x1B[38;2;17;245;120m$ ./mi_touch (cambiado a mi_mkdir) disco 6 /dir1/dir11/dir12/fic111 #Error: No existe algún directorio intermedio.\x1b[0m"
+#./mi_mkdir disco 6 /dir1/dir11/dir12/fic111
+#echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_mkdir disco 9 /dir2/ #Error: modo inválido: <<9>>\x1b[0m"
 ./mi_mkdir disco 9 /dir2/
 echo
@@ -121,7 +125,7 @@ echo -e "\x1B[38;2;17;245;120m$ ./mi_cat  disco /dir1/dir11/fic111>ext1.txt\x1b[
 ./mi_cat  disco /dir1/dir11/fic111>ext1.txt
 echo
 echo -e "\x1B[38;2;17;245;120m$ ls -l ext1.txt #comprobamos el tamaño del fichero externo\x1b[0m" 
-ls ext1.txt
+ls -l ext1.txt
 echo
 echo -e "\x1B[38;2;17;245;120m######################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_chmod disco 4 /dir1/dir11/fic111 #cambio a permiso lectura\x1b[0m"
@@ -198,7 +202,7 @@ echo -e "\x1B[38;2;17;245;120m##################################################
 echo -e "\x1B[38;2;17;245;120m$ ./mi_ls disco /dir1/dir11/\x1b[0m"
 ./mi_ls disco /dir1/dir11/
 echo
-echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic113\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_touch (cambiado a mi_mkdir) disco 6 /dir1/dir11/fic113\x1b[0m"
 ./mi_mkdir disco 6 /dir1/dir11/fic113
 echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_escribir disco /dir1/dir11/fic113 \"hellooooooo\" 409605000 #⊂ BL 400.004 ∈ I2\x1b[0m"
@@ -248,7 +252,7 @@ echo -e "\x1B[38;2;17;245;120m#camino2 NO ha de existir\x1b[0m"
 ./mi_link disco /dir1/dir11/fic113 /dir2/dir21/fic211 #camino2 NO ha de existir
 echo
 echo -e "\x1B[38;2;17;245;120m######################################################################\x1b[0m"
-echo -e "\x1B[38;2;17;245;120m$ ./mi_rmdir disco /dir2/dir21/ #o mi_rm\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_rmdir ( cambiado a mi_rm) disco /dir2/dir21/ #o mi_rm\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m#Error: El directorio /dir2/dir21/ no está vacío\x1b[0m"
 ./mi_rm disco /dir2/dir21/ 
 echo
@@ -270,7 +274,7 @@ echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_rm disco /dir2/dir21/fic211 #ya no existe\x1b[0m"
 ./mi_rm disco /dir2/dir21/fic211
 echo
-echo -e "\x1B[38;2;17;245;120m$ ./mi_rmdir disco /dir2/dir21/ #o mi_rm\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_rmdir (cambiado a mi_rm)disco /dir2/dir21/ #o mi_rm\x1b[0m"
 ./mi_rm disco /dir2/dir21/
 echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_ls disco /dir2/\x1b[0m"
@@ -326,7 +330,7 @@ echo -e "\x1B[38;2;17;245;120m$ ./mi_ls disco /dir3/\x1b[0m"
 echo
 echo -e "\x1B[38;2;17;245;120m######################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120mEliminamos el subdirectorio sd3 de dir3\x1b[0m"
-echo -e "\x1B[38;2;17;245;120m$ ./mi_rmdir disco /dir3/sd3/\x1b[0m"
+echo -e "\x1B[38;2;17;245;120m$ ./mi_rmdir (cambiado a mi_rm) disco /dir3/sd3/\x1b[0m"
 ./mi_rm disco /dir3/sd3/
 echo
 echo -e "\x1B[38;2;17;245;120m"

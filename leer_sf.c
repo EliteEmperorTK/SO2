@@ -263,6 +263,7 @@ int main(int args, char **argv)
         mostrar_buscar_entrada("/pruebas/casos/", 1);    // creamos /pruebas/casos/
         mostrar_buscar_entrada("/pruebas/docs/doc2", 1); // creamos /pruebas/docs/doc2
     */
+
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
     {
