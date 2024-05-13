@@ -1,8 +1,15 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "ficheros.h"
 
-/* args: cantidad de argumentos
- * argv: lista de argumentos: [1] = nombre del dispositivo; [2] = nº inodo que vamos a truncar; [3] = cantidad de bytes hasta la que vamos a truncar
- */
+/* Programa ficticio que llama a liberar_inodo() y mi_truncar_f()
+* args: cantidad de argumentos
+* argv: lista de argumentos: [1] = nombre del dispositivo; [2] = nº inodo que vamos a truncar; [3] = cantidad de bytes hasta la que vamos a truncar
+*/
 int main(int args, char **argv)
 {
     // Validación sintaxis

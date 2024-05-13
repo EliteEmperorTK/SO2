@@ -1,8 +1,14 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
 
-/* Programa (comando) que muestra TODO el contenido de un fichero.
+/* Programa que muestra TODO el contenido de un fichero.
  * args: cantidad de argumentos
- * argv: lista de argumentos: [1] = nombre_dispositivo; [2] = ruta_fichero;
+ * argv: lista de argumentos: [1] = nombre del dispositivo; [2] = ruta (camino) del directorio/fichero;
  */
 int main(int args, char **argv)
 {

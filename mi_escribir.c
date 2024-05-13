@@ -1,8 +1,14 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
 
 /* Permite escribir texto en una posición de un fichero (offset).
  * args: cantidad de argumentos
- * argv: lista de argumentos: [1] = nombre_dispositivo; [2] = ruta_fichero; [3] = texto; [4] = offset
+ * argv: lista de argumentos: [1] = nombre del dispositivo; [2] = ruta (camino) del fichero; [3] = texto; [4] = offset
  */
 int main(int args, char **argv)
 {

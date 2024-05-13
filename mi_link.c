@@ -1,8 +1,14 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
 
-/* crea un enlace a un fichero
+/* Crea un enlace a un fichero
  * args: cantidad de argumentos
- * argv: lista de argumentos: [1] = nombre_dispositivo; [2] = ruta_fichero_original; [3] = ruta_enlace;
+ * argv: lista de argumentos: [1] = nombre_dispositivo; [2] = ruta (camino) del fichero original; [3] = ruta del enlace
  */
 int main(int args, char **argv)
 {

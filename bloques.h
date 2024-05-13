@@ -1,3 +1,9 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include <stdio.h>    //printf(), fprintf(), stderr, stdout, stdin
 #include <fcntl.h>    //O_WRONLY, O_CREAT, O_TRUNC
 #include <sys/stat.h> //S_IRUSR, S_IWUSR

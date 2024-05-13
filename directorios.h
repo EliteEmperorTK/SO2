@@ -1,3 +1,9 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "ficheros.h"
 
 #define ERROR_CAMINO_INCORRECTO (-2)

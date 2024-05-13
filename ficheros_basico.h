@@ -1,3 +1,9 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "bloques.h"
 #include <limits.h>
 #include <time.h>

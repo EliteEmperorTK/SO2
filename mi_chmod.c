@@ -1,5 +1,15 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
 
+/* Cambia los permisos de un directorio/fichero
+ * args: cantidad de argumentos
+ * argv: lista de argumentos: [1] = nombre del dispositivo; [2] = permisos a asignar al fichero/directorio; [3] = ruta (camino) del directorio/fichero
+ */
 int main(int args, char **argv)
 {
     if (args != 4)

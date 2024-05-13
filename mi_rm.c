@@ -1,8 +1,14 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
 
-/* borra un fichero o directorio
+/* Borra un fichero o directorio
  * args: cantidad de argumentos
- * argv: lista de argumentos: [1] = nombre_dispositivo; [2] = ruta;
+ * argv: lista de argumentos: [1] = nombre del dispositivo; [2] = ruta (camino) hasta el fichero/directorio
  */
 int main(int args, char **argv)
 {

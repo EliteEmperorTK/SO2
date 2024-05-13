@@ -1,4 +1,15 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
+
+/* Formatea el dispositivo virtual con el tamaño adecuado de bloques
+ * args: cantidad de argumentos
+ * argv: lista de argumentos: [1] = nombre del dispositivo; [2] = cantidad de bloques del dispositivo;
+ */
 
 int main(int args, char **argv)
 {

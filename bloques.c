@@ -1,3 +1,8 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
 #include "bloques.h"
 
 // Variable global estática para el descriptor del fichero

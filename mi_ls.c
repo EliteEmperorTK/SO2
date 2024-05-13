@@ -1,4 +1,15 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
+
+/* Enseña los nombres de las entradas, además de otros datos del inodo de cada directorio
+ *args: cantidad de argumentos
+ *argv: lista de argumentos: [1] = nombre del dispositivo; [2] = ruta (camino) hasta el fichero/directorio
+ */
 
 int main(int args, char **argv)
 {

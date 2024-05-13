@@ -97,12 +97,10 @@ echo -e "\x1B[38;2;17;245;120m$ ./mi_mkdir disco 6 /dir1/dir11/fic111/dir12/ #Er
 ./mi_mkdir disco 6 /dir1/dir11/fic111/dir12/
 echo
 
-#esto nos hace reservar un inodo mas y despues todo da mal entonces
-#
-
-#echo -e "\x1B[38;2;17;245;120m$ ./mi_touch (cambiado a mi_mkdir) disco 6 /dir1/dir11/dir12/fic111 #Error: No existe algún directorio intermedio.\x1b[0m"
-#./mi_mkdir disco 6 /dir1/dir11/dir12/fic111
-#echo
+#esto nos hace reservar un inodo mas y después todo da mal en consecuencia
+echo -e "\x1B[38;2;17;245;120m$ ./mi_touch (cambiado a mi_mkdir) disco 6 /dir1/dir11/dir12/fic111 #Error: No existe algún directorio intermedio.\x1b[0m"
+./mi_mkdir disco 6 /dir1/dir11/dir12/fic111
+echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_mkdir disco 9 /dir2/ #Error: modo inválido: <<9>>\x1b[0m"
 ./mi_mkdir disco 9 /dir2/
 echo
@@ -231,7 +229,7 @@ echo "                 /   |   \                  |"
 echo "           fic111 fic112 fic113 <-------- fic211"
 echo -e "\x1b[0m"
 echo
-echo -e "\x1B[38;2;17;245;120m$ ./mi_cat disco /dir2/dir21/fic211\x1b[0m" 
+echo -e "\x1B[38;2;17;245;120m$ ./mi_cat disco /dir2/dir21/fic211\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m#ha de mostrar mismo contenido que /dir1/dir11/fic113\x1b[0m"
 ./mi_cat disco /dir2/dir21/fic211 
 echo
@@ -354,4 +352,4 @@ echo -e "\x1B[38;2;17;245;120m$ ./mi_ls disco /dir3/\x1b[0m"
 ./mi_ls disco /dir3/
 
 echo "################################################################################"
-#make clean
+make clean

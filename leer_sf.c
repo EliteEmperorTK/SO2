@@ -1,20 +1,15 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
 
-// Función nivel 7
-void mostrar_buscar_entrada(char *camino, char reservar)
-{
-    unsigned int p_inodo_dir = 0;
-    unsigned int p_inodo = 0;
-    unsigned int p_entrada = 0;
-    int error;
-    printf("\ncamino: %s, reservar: %d\n", camino, reservar);
-    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, reservar, 6)) < 0)
-    {
-        mostrar_error_buscar_entrada(error);
-    }
-    printf("**********************************************************************\n");
-}
-
+/* Programa que muestra información que consideremos relevante.
+ * args: cantidad de argumentos
+ * argv: lista de argumentos: [1] = nombre del dispositivo;
+ */
 int main(int args, char **argv)
 {
     if (args != 2)
@@ -262,6 +257,20 @@ int main(int args, char **argv)
         mostrar_buscar_entrada("/pruebas/docs/doc1", 1); // ERROR_ENTRADA_YA_EXISTENTE
         mostrar_buscar_entrada("/pruebas/casos/", 1);    // creamos /pruebas/casos/
         mostrar_buscar_entrada("/pruebas/docs/doc2", 1); // creamos /pruebas/docs/doc2
+
+        void mostrar_buscar_entrada(char *camino, char reservar)
+            {
+            unsigned int p_inodo_dir = 0;
+            unsigned int p_inodo = 0;
+            unsigned int p_entrada = 0;
+            int posible_error;
+            printf("\ncamino: %s, reservar: %d\n", camino, reservar);
+            if ((posible_error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, reservar, 6)) < 0)
+            {
+                mostrar_error_buscar_entrada(posible_error);
+            }
+            printf("**********************************************************************\n");
+}
     */
 
     // Desmontar el dispositivo virtual

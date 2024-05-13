@@ -1,8 +1,14 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
 
-/**
- *args:
- *argv:
+/* Crea un fichero o directorio
+ *args: cantidad de argumentos
+ *argv: lista de argumentos: [1] = nombre del dispositivo; [2] = permisos que tendrá el directorio; [3] = ruta del directorio a crear
  */
 int main(int args, char **argv)
 {

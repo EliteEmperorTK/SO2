@@ -1,5 +1,15 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "directorios.h"
 
+/* Muestra la información acerca del inodo de un fichero o directorio
+* args: cantidad de argumentos
+* argv: lista de argumentos: [1] = nombre del dispositivo; [2] = ruta (camino) hasta el fichero/directorio
+*/
 int main(int args, char **argv)
 {
     if (args != 3)

@@ -1,3 +1,9 @@
+/* AUTORES:
+* Marc Nadal Sastre Gondar
+* Joaquín Esperon Solari
+* Martí Vich Gispert
+*/
+
 #include "ficheros_basico.h"
 
 /**
@@ -78,38 +84,38 @@ int initMB()
 { // Mapa de bits
     struct superbloque SB;
 
-    // Leemos el superbloque para obtener información relevante
+    // Leemos el superbloque para obtener y actualizar información relevante
     if (bread(posSB, &SB) == FALLO)
     {
         fprintf(stderr, RED "Error al leer el superbloque en initMB.\n" RESET);
         return FALLO;
     }
 
-    // Cantidad de bloques que ocupan los metadatos
-    int nBloquesMetadatos = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
+    // Cantidad total de bloques que ocupa toda la información
+    int cantBloques = tamSB + tamMB(SB.totBloques) + tamAI(SB.totInodos);
 
-    // Calculamos el tamaño del mapa de bits necesario en bytes
-    int cantBytes = nBloquesMetadatos / 8;  // Bytes completos que ocupan los metadatos
-    int bitsExtras = nBloquesMetadatos % 8; // Bits extra
+    // Calculamos el tamaño del mapa de bits necesario
+    int cantBytes = cantBloques / 8;  // Bytes completos totales
+    int bitsExtras = cantBloques % 8; // Bits sobrantes
 
     int tamBloqueMB = (cantBytes + bitsExtras + BLOCKSIZE - 1) / BLOCKSIZE; // Tamaño del bloque de mapa de bits
 
     int tamBytesMB = tamBloqueMB * BLOCKSIZE; // Tamaño total del mapa de bits en bytes
 
-    // Crear un buffer para almacenar el mapa de bits en memoria
-    char bitmap[tamBytesMB];
+    // Creamos un buffer para almacenar el mapa de bits
+    char bufferMB[tamBytesMB];
 
-    // Llenar los bytes correspondientes a los metadatos con 1s
-    memset(bitmap, 255, cantBytes);
+    // Llenamos los bytes enteros con 1's
+    memset(bufferMB, 255, cantBytes);
 
-    // Llenar el último byte parcial con 1s y 0s según los bits restantes de los metadatos
-    memset(bitmap + cantBytes + 1, 0, tamBytesMB - cantBytes);
-    bitmap[cantBytes] = 255 << (8 - bitsExtras);
+    // Llenamos el último byte parcial con tantos 1's y después 0's como para formar un byte entero
+    memset(bufferMB + cantBytes + 1, 0, tamBytesMB - cantBytes);
+    bufferMB[cantBytes] = 255 << (8 - bitsExtras);
 
     // Escribir el mapa de bits en el disco
     for (int idx = 0; idx < tamBloqueMB; ++idx)
     {
-        if (bwrite(SB.posPrimerBloqueMB + idx, &bitmap[idx * BLOCKSIZE]) == FALLO)
+        if (bwrite(SB.posPrimerBloqueMB + idx, &bufferMB[idx * BLOCKSIZE]) == FALLO)
         {
             fprintf(stderr, RED "Error al escribir un bloque en initMB");
             return FALLO;
@@ -117,7 +123,7 @@ int initMB()
     }
 
     // Actualizar la cantidad de bloques libres en el superbloque
-    SB.cantBloquesLibres -= nBloquesMetadatos;
+    SB.cantBloquesLibres -= cantBloques;
 
     // Escribir el superbloque actualizado en el disco
     if (bwrite(posSB, &SB) == FALLO)
