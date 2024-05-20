@@ -1,8 +1,8 @@
 /* AUTORES:
-* Marc Nadal Sastre Gondar
-* Joaquín Esperon Solari
-* Martí Vich Gispert
-*/
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
 
 #include "directorios.h"
 
@@ -18,7 +18,7 @@ int main(int args, char **argv)
         return FALLO;
     }
 
-    //Almacenamos los parametros
+    // Almacenamos los parametros
     const char *nombre_dispositivo = argv[1];
     int permisos = atoi(argv[2]);
     const char *ruta = argv[3];
@@ -29,12 +29,11 @@ int main(int args, char **argv)
         return FALLO;
     }
 
-    if (ruta[atoi(ruta) - 1] == '/') //Verifica si la penúltima posición de ruta es /
+    if (ruta[atoi(ruta) - 1] == '/') // Verifica si la penúltima posición de ruta es /
     {
         mostrar_error_buscar_entrada(ERROR_CAMINO_INCORRECTO);
         return FALLO;
     }
-
 
     if (bmount(nombre_dispositivo) == FALLO) // Montamos el dispositivo virtual
     {
@@ -45,7 +44,7 @@ int main(int args, char **argv)
     // Creamos el directorio
     if (mi_creat(ruta, permisos) == FALLO)
     {
-        //No imprimimos nada porque ya hemos imprimido el error
+        // No imprimimos nada porque ya hemos imprimido el error
         return FALLO;
     }
 

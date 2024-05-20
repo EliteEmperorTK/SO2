@@ -1,8 +1,8 @@
 /* AUTORES:
-* Marc Nadal Sastre Gondar
-* Joaquín Esperon Solari
-* Martí Vich Gispert
-*/
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
 
 #include "ficheros.h"
 
@@ -298,6 +298,8 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat)
  */
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
 {
+
+    // mi_waitSem();
     struct inodo inodo;
 
     // Leer el inodo correspondiente al número de inodo pasado como argumento
@@ -305,6 +307,7 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
     {
         // Error al leer el inodo
         fprintf(stderr, RED "Error en mi_stat_f: No se ha podido leer el inodo.\n" RESET);
+        // mi_signalSem();
         return FALLO;
     }
 
@@ -317,9 +320,10 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
     {
         // Error al escribir el inodo modificado
         fprintf(stderr, RED "Error en mi_chmod_f: No se ha podido escribir el inodo.\n" RESET);
+        // mi_signalSem();
         return FALLO;
     }
-
+    // mi_signalSem();
     return EXITO; // Éxito
 }
 

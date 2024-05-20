@@ -1,8 +1,8 @@
 /* AUTORES:
-* Marc Nadal Sastre Gondar
-* Joaquín Esperon Solari
-* Martí Vich Gispert
-*/
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
 
 #include <stdio.h>    //printf(), fprintf(), stderr, stdout, stdin
 #include <fcntl.h>    //O_WRONLY, O_CREAT, O_TRUNC
@@ -38,3 +38,8 @@ int bmount(const char *camino);
 int bumount();
 int bwrite(unsigned int nbloque, const void *buf);
 int bread(unsigned int nbloque, void *buf);
+
+// NIVEL 11
+/*
+void mi_waitSem();
+void mi_signalSem();*/
