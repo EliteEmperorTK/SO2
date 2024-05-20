@@ -1,3 +1,9 @@
+/* AUTORES:
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
+
 #include <sys/wait.h>
 #include <signal.h>
 #include "directorios.h"

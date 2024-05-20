@@ -1,3 +1,9 @@
+/* AUTORES:
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
+
 /* semaforo_mutex_posix.c */
 #include "semaforo_mutex_posix.h"
 

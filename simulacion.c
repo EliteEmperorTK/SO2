@@ -1,8 +1,18 @@
+/* AUTORES:
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
+
 #include "simulacion.h"
 
 static int acabados = 0;
-
-int main(int argc, char *argv[])
+/*
+ * Simulación que crea procesos que acceden de forma concurrente para comprobar que funcionan correctamente
+ * args: cantidad de argumentos
+ * argv: lista de argumentos: [0] = nombre del dispositivo
+ */
+int main(int args, char *argv[])
 {
     pid_t pid;
     time_t t;
@@ -16,7 +26,7 @@ int main(int argc, char *argv[])
     signal(SIGCHLD, reaper);
 
     // Comprobar sintaxis
-    if (argc != 2)
+    if (args != 2)
     {
         fprintf(stderr, "Sintaxis ./simulacion <nombre_dispositivo>\n");
         return FALLO;
