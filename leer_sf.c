@@ -242,7 +242,20 @@ int main(int args, char **argv)
     /////////////
     // NIVEL 7 //
     /////////////
-    /*
+
+    void mostrar_buscar_entrada(char *camino, char reservar){
+            unsigned int p_inodo_dir = 0;
+            unsigned int p_inodo = 0;
+            unsigned int p_entrada = 0;
+            int posible_error;
+            printf("\ncamino: %s, reservar: %d\n", camino, reservar);
+            if ((posible_error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, reservar, 6)) < 0)
+            {
+                mostrar_error_buscar_entrada(posible_error);
+            }
+            printf("**********************************************************************\n");
+}
+    
         // Mostrar creación directorios y errores
         mostrar_buscar_entrada("pruebas/", 1);           // ERROR_CAMINO_INCORRECTO
         mostrar_buscar_entrada("/pruebas/", 0);          // ERROR_NO_EXISTE_ENTRADA_CONSULTA
@@ -258,20 +271,7 @@ int main(int args, char **argv)
         mostrar_buscar_entrada("/pruebas/casos/", 1);    // creamos /pruebas/casos/
         mostrar_buscar_entrada("/pruebas/docs/doc2", 1); // creamos /pruebas/docs/doc2
 
-        void mostrar_buscar_entrada(char *camino, char reservar)
-            {
-            unsigned int p_inodo_dir = 0;
-            unsigned int p_inodo = 0;
-            unsigned int p_entrada = 0;
-            int posible_error;
-            printf("\ncamino: %s, reservar: %d\n", camino, reservar);
-            if ((posible_error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, reservar, 6)) < 0)
-            {
-                mostrar_error_buscar_entrada(posible_error);
-            }
-            printf("**********************************************************************\n");
-}
-    */
+    
 
     // Desmontar el dispositivo virtual
     if (bumount() == FALLO)
