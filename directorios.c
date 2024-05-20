@@ -314,7 +314,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
  */
 int mi_creat(const char *camino, unsigned char permisos)
 {
-    // mi_waitSem();
+    mi_waitSem();
 
     int posible_error;
 
@@ -328,10 +328,10 @@ int mi_creat(const char *camino, unsigned char permisos)
     if (posible_error < 0) // Si hay un error, lo mostramos por pantalla
     {
         mostrar_error_buscar_entrada(posible_error);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
-    // mi_signalSem();
+    mi_signalSem();
     return EXITO;
 }
 
@@ -637,7 +637,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 int mi_link(const char *camino1, const char *camino2)
 {
 
-    // mi_waitSem();
+    mi_waitSem();
 
     // Declaramos los structs que vamos a usar
     struct entrada entrada;
@@ -661,7 +661,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (posible_error < 0) // Si el fichero 1 no existe -> mostramos error
     {
         mostrar_error_buscar_entrada(posible_error);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -671,7 +671,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (posible_error < 0) // Si ya existe -> mostramos error
     {
         mostrar_error_buscar_entrada(posible_error);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -680,7 +680,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (posible_error < 0)
     {
         fprintf(stderr, RED "Error en mi_link al ejecutar mi_read_f\n" RESET);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -693,7 +693,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (posible_error < 0)
     {
         fprintf(stderr, RED "Error en mi_link al ejecutar mi_write_f\n" RESET);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -701,7 +701,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (liberar_inodo(p_inodo2) == FALLO)
     {
         fprintf(stderr, RED "Error en mi_link al liberar el inodo" RESET);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -709,7 +709,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (leer_inodo(p_inodo1, &inodo) == FALLO)
     {
         fprintf(stderr, RED "Error en mi_link al leer el inodo\n" RESET);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -720,11 +720,11 @@ int mi_link(const char *camino1, const char *camino2)
     if (escribir_inodo(p_inodo1, &inodo) == FALLO)
     {
         fprintf(stderr, RED "Error en mi_link al escribir el inodo\n" RESET);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
-    // mi_signalSem();
+    mi_signalSem();
     return EXITO;
 }
 
@@ -734,7 +734,7 @@ int mi_link(const char *camino1, const char *camino2)
 int mi_unlink(const char *camino)
 {
 
-    // mi_waitSem();
+    mi_waitSem();
 
     // Declaramos los punteros
     unsigned int p_inodo = 0;
@@ -756,7 +756,7 @@ int mi_unlink(const char *camino)
     if (posible_error < 0)
     {
         mostrar_error_buscar_entrada(posible_error);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -764,7 +764,7 @@ int mi_unlink(const char *camino)
     if (leer_inodo(p_inodo, &inodo) == FALLO)
     {
         fprintf(stderr, RED "Error en mi_unlink al leer inodo\n" RESET);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -772,7 +772,7 @@ int mi_unlink(const char *camino)
     if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0)
     {
         fprintf(stderr, RED "Error: El directorio %s no está vacío\n" RESET, camino);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -782,7 +782,7 @@ int mi_unlink(const char *camino)
         if (leer_inodo(p_inodo_dir, &inodo_dir) == FALLO)
         {
             fprintf(stderr, RED "Error en mi_unlink ya que no se puede leer inodo\n" RESET);
-            // mi_signalSem();
+            mi_signalSem();
             return FALLO;
         }
 
@@ -801,7 +801,7 @@ int mi_unlink(const char *camino)
             if (mi_read_f(p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog - sizeof(struct entrada), sizeof(struct entrada)) == FALLO)
             {
                 fprintf(stderr, RED "Error en mi_unlink al leer la última entrada" RESET);
-                // mi_signalSem();
+                mi_signalSem();
                 return FALLO;
             }
 
@@ -809,7 +809,7 @@ int mi_unlink(const char *camino)
             if (mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) == FALLO)
             {
                 fprintf(stderr, RED "Error en mi_unlink al escribir en la última posicion" RESET);
-                // mi_signalSem();
+                mi_signalSem();
                 return FALLO;
             }
 
@@ -820,7 +820,7 @@ int mi_unlink(const char *camino)
         if (mi_truncar_f(p_inodo_dir, inodo_dir.tamEnBytesLog - sizeof(struct entrada)) == FALLO)
         {
             fprintf(stderr, RED "Error en mi_unlink al truncar el inodo" RESET);
-            // mi_signalSem();
+            mi_signalSem();
             return FALLO;
         }
 
@@ -828,7 +828,7 @@ int mi_unlink(const char *camino)
         if (leer_inodo(p_inodo, &inodo_dir) == FALLO)
         {
             fprintf(stderr, RED "Error en mi_unlink al leer el inodo\n" RESET);
-            // mi_signalSem();
+            mi_signalSem();
             return FALLO;
         }
 
@@ -841,7 +841,7 @@ int mi_unlink(const char *camino)
             if (liberar_inodo(p_inodo) == FALLO)
             {
                 fprintf(stderr, RED "Error en mi_unlink al liberar el inodo" RESET);
-                // mi_signalSem();
+                mi_signalSem();
                 return FALLO;
             }
         }
@@ -852,11 +852,11 @@ int mi_unlink(const char *camino)
             if (escribir_inodo(p_inodo, &inodo_dir) == FALLO)
             {
                 fprintf(stderr, RED "Error en mi_unlink al escribir el inodo" RESET);
-                // mi_signalSem();
+                mi_signalSem();
                 return FALLO;
             }
         }
     }
-    // mi_signalSem();
+    mi_signalSem();
     return EXITO;
 }

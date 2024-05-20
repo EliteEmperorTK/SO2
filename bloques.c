@@ -4,14 +4,14 @@
  * Martí Vich Gispert
  */
 #include "bloques.h"
-// #include "semaforo_mutex_posix.h"
+#include "semaforo_mutex_posix.h"
 
 // Variable global estática para el descriptor del fichero
 static int descriptor = 0;
 
-// static sem_t *mutex;
+static sem_t *mutex;
 
-// static unsigned int inside_sc = 0;
+static unsigned int inside_sc = 0;
 
 /**
  *   Montar el dispositivo virtual
@@ -20,14 +20,14 @@ static int descriptor = 0;
 int bmount(const char *camino)
 {
 
-    /*if (!mutex)
+    if (!mutex)
     { // el semáforo es único en el sistema y sólo se ha de inicializar 1 vez (padre)
         mutex = initSem();
         if (mutex == SEM_FAILED)
         {
             return -1;
         }
-    }*/
+    }
 
     umask(000);
     descriptor = open(camino, O_RDWR | O_CREAT, 0666);
@@ -46,7 +46,7 @@ int bmount(const char *camino)
 int bumount()
 {
     // Borramos el semáforo
-    // deleteSem();
+    deleteSem();
 
     if (close(descriptor) == FALLO)
     {
@@ -113,11 +113,11 @@ int bread(unsigned int nbloque, void *buf)
  */
 void mi_waitSem()
 {
-    /*if (!inside_sc)
+    if (!inside_sc)
     { // inside_sc==0, no se ha hecho ya un wait
         waitSem(mutex);
     }
-    inside_sc++;*/
+    inside_sc++;
 }
 
 /**
@@ -125,9 +125,9 @@ void mi_waitSem()
  */
 void mi_signalSem()
 {
-    /*inside_sc--;
+    inside_sc--;
     if (!inside_sc)
     {
         signalSem(mutex);
-    }*/
+    }
 }

@@ -18,15 +18,19 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     int cant_bytes = 0;
     struct inodo inodo;
 
+    mi_waitSem();
+
     if (leer_inodo(ninodo, &inodo) == FALLO)
     { // Leemos el inodo
         fprintf(stderr, RED "Error en mi_write_f: No se ha podido leer el inodo.\n" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
     if ((inodo.permisos & 2) != 2)
     { // Miramos si el inodo tiene permisos de escritura
         fprintf(stderr, RED "Error en mi_write_f: No hay permisos de escritura.\n" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
@@ -39,6 +43,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     if (nbfisico == FALLO)
     {
         fprintf(stderr, RED "Error en mi_write_f: No se ha podido encontrar la posición real del primer bloque físico.\n" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
@@ -46,6 +51,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     if (bread(nbfisico, &buf_bloque) == FALLO)
     { // Leemos el bloque y lo metemos en un buffer (común en ambos casos)
         fprintf(stderr, RED "Error en mi_write_f: No se ha podido leer el primer bloque físico. \n" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
@@ -57,6 +63,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         if (bwrite(nbfisico, buf_bloque) == FALLO)        // Escribimos lo del buffer donde toca
         {
             fprintf(stderr, RED "Error en mi_write_f: No se ha podido escribir en el bloque. \n" RESET);
+            mi_signalSem();
             return FALLO;
         };
 
@@ -70,6 +77,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         if (bwrite(nbfisico, buf_bloque) == FALLO) // Escribimos lo del buffer donde toca
         {
             fprintf(stderr, RED "Error en mi_write_f: No se ha podido escribir en el bloque. \n" RESET);
+            mi_signalSem();
             return FALLO;
         };
 
@@ -83,6 +91,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             if (nbfisico == FALLO)
             {
                 fprintf(stderr, RED "Error en mi_write_f Caso 2: No se ha podido traducir el bloque de inodo.\n" RESET);
+                mi_signalSem();
                 return FALLO;
             }
 
@@ -90,6 +99,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             if (bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (bl - primerBL - 1) * BLOCKSIZE) == FALLO)
             {
                 fprintf(stderr, RED "Error en mi_write_f Caso 2: No se ha podido escribir en un bloque intermedio.\n" RESET);
+                mi_signalSem();
                 return FALLO;
             }
 
@@ -101,6 +111,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         if (nbfisico == FALLO)
         {
             fprintf(stderr, RED "Error en mi_write_f Caso 2 Fase 3: No se ha podido traducir el bloque de inodo.\n" RESET);
+            mi_signalSem();
             return FALLO;
         }
 
@@ -113,6 +124,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         if (bwrite(nbfisico, buf_bloque) == FALLO)
         {
             fprintf(stderr, RED "Error en mi_write_f Caso 2: No se ha podido escribir en el último bloque.\n" RESET);
+            mi_signalSem();
             return FALLO;
         }
         cant_bytes += (desp2 + 1);
@@ -130,9 +142,11 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     if (escribir_inodo(ninodo, &inodo) == FALLO)
     { // Escribimos el inodo actualizado
         fprintf(stderr, RED "Error en mi_write_f: No se ha podido escribir el inodo actualizado.\n" RESET);
+        mi_signalSem();
         return FALLO;
     }
     // printf("Bytes 6 = %d", cant_bytes);
+    mi_signalSem();
     return cant_bytes;
 }
 
@@ -149,9 +163,12 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     struct inodo inodo;
     unsigned char buf_bloque[BLOCKSIZE];
 
+    mi_waitSem();
+
     if (leer_inodo(ninodo, &inodo) == FALLO)
     {
         fprintf(stderr, RED "Error al leer el inodo en mi_read_f" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
@@ -161,12 +178,14 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     {
         // El inodo no tiene permisos de lectura
         fprintf(stderr, RED "El fichero no esta disponible en modo lectura" RESET);
+        mi_signalSem();
         return FALLO;
     }
 
     // Comprobamos que el offset esté dentro del tamaño en bytes lógicos del inodo
     if (offset >= inodo.tamEnBytesLog)
     {
+        mi_signalSem();
         return leidos;
     }
     // Si pretende leer más allá de EOF leemos solo hasta el EOF
@@ -191,6 +210,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             if (bread(nbfisico, buf_bloque) < 0)
             {
                 fprintf(stderr, RED "Lectura incorrecta del bloque fisico.\n" RESET);
+                mi_signalSem();
                 return FALLO;
             }
             memcpy(buf_original, buf_bloque + desp1, nbytes);
@@ -208,6 +228,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             if (bread(nbfisico, buf_bloque) == FALLO)
             {
                 fprintf(stderr, RED "Lectura incorrecta.\n" RESET);
+                mi_signalSem();
                 return FALLO;
             }
             memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
@@ -223,6 +244,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
                 if (bread(nbfisico, buf_bloque) == FALLO)
                 {
                     fprintf(stderr, RED "Error de lectura\n" RESET);
+                    mi_signalSem();
                     return FALLO;
                 }
                 memcpy(buf_original + leidos, buf_bloque, BLOCKSIZE);
@@ -239,6 +261,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             if (bread(nbfisico, buf_bloque) == FALLO)
             {
                 fprintf(stderr, RED "Error de lectura\n" RESET);
+                mi_signalSem();
                 return FALLO;
             }
             memcpy(buf_original + leidos, buf_bloque, desp2 + 1);
@@ -246,10 +269,11 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         leidos += desp2 + 1;
     }
 
-    // Actualizamos metadatos
+        // Actualizamos metadatos
     if (leer_inodo(ninodo, &inodo) == FALLO)
     {
         fprintf(stderr, RED "Error al leer el inodo en mi_read_f");
+        mi_signalSem();
         return FALLO;
     }
 
@@ -258,8 +282,10 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     if (escribir_inodo(ninodo, &inodo) == FALLO)
     {
         fprintf(stderr, RED "Error al escribir el inodo en mi_read_f");
+        mi_signalSem();
         return FALLO;
     }
+    mi_signalSem();
     return leidos;
 }
 
@@ -299,7 +325,7 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat)
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
 {
 
-    // mi_waitSem();
+    mi_waitSem();
     struct inodo inodo;
 
     // Leer el inodo correspondiente al número de inodo pasado como argumento
@@ -307,7 +333,7 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
     {
         // Error al leer el inodo
         fprintf(stderr, RED "Error en mi_stat_f: No se ha podido leer el inodo.\n" RESET);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -320,10 +346,10 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
     {
         // Error al escribir el inodo modificado
         fprintf(stderr, RED "Error en mi_chmod_f: No se ha podido escribir el inodo.\n" RESET);
-        // mi_signalSem();
+        mi_signalSem();
         return FALLO;
     }
-    // mi_signalSem();
+    mi_signalSem();
     return EXITO; // Éxito
 }
 

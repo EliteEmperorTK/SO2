@@ -40,6 +40,6 @@ int bwrite(unsigned int nbloque, const void *buf);
 int bread(unsigned int nbloque, void *buf);
 
 // NIVEL 11
-/*
+
 void mi_waitSem();
-void mi_signalSem();*/
+void mi_signalSem();
