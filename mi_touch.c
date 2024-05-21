@@ -14,7 +14,7 @@ int main(int args, char **argv)
 {
     if (args != 4)
     {
-        fprintf(stderr, RED "Sintaxis: ./mi_mkdir <nombre_dispositivo> <permisos> </ruta_directorio/> \n" RESET);
+        fprintf(stderr, RED "Sintaxis: ./mi_touch <nombre_dispositivo> <permisos> </ruta_directorio/> \n" RESET);
         return FALLO;
     }
 
@@ -29,8 +29,8 @@ int main(int args, char **argv)
         return FALLO;
     }
 
-    // Verifica si la última posición de ruta no es /
-    if (ruta[strlen(ruta) - 1] != '/')
+    // se comprueba que la ruta termine en '/'
+    if (ruta[strlen(ruta) - 1] == '/') // Verifica si la última posición de ruta es /
     {
         mostrar_error_buscar_entrada(ERROR_CAMINO_INCORRECTO);
         return FALLO;
@@ -42,10 +42,11 @@ int main(int args, char **argv)
         return FALLO;
     }
 
-    // Creamos el directorio
+    // Creamos el fichero
     if (mi_creat(ruta, permisos) == FALLO)
     {
         // No imprimimos nada porque ya hemos imprimido el error
+        bumount();
         return FALLO;
     }
 

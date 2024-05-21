@@ -29,8 +29,8 @@ int main(int args, char **argv)
         return FALLO;
     }
 
-    // Verifica si la última posición de ruta es /
-    if (ruta[strlen(ruta) - 1] == '/')
+    // Verifica si la última posición de ruta no es /
+    if (ruta[strlen(ruta) - 1] != '/')
     {
         mostrar_error_buscar_entrada(ERROR_CAMINO_INCORRECTO);
         return FALLO;

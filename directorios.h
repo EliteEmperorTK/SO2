@@ -1,8 +1,8 @@
 /* AUTORES:
-* Marc Nadal Sastre Gondar
-* Joaquín Esperon Solari
-* Martí Vich Gispert
-*/
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
 
 #include "ficheros.h"
 
@@ -44,7 +44,7 @@ void mostrar_buscar_entrada(char *camino, char reservar);
 // NIVEL 8
 int mi_creat(const char *camino, unsigned char permisos);
 
-int mi_dir(const char *camino, char *buffer);
+int mi_dir(const char *camino, char *buffer, char tipo, int flag);
 
 int mi_chmod(const char *camino, unsigned char permisos);
 

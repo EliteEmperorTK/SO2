@@ -295,8 +295,9 @@ int mi_creat(const char *camino, unsigned char permisos)
 /* Pone el contenido del directorio(camino) en un buffer de memoria(buffer)
  * camino: nos indica la ruta hasta el fichero/directorio
  * buffer: buffer de memoria que recibe  el directorio
+ * extra:  extra = 0 -> lista el nombre de las entradas de directorio. extra = 1 -> lista también más información
  */
-int mi_dir(const char *camino, char *buffer)
+int mi_dir(const char *camino, char *buffer, char tipo, int flag)
 {
     struct superbloque SB;
     struct inodo inodo;
@@ -317,7 +318,8 @@ int mi_dir(const char *camino, char *buffer)
     unsigned int p_inodo_dir = SB.posInodoRaiz;
     unsigned int posInodoRaiz = SB.posInodoRaiz;
 
-    posibleError = buscar_entrada(camino, &p_inodo_dir, &posInodoRaiz, &p_entrada, 0, 0); // Buscamos la entrada
+    // Buscamos la entrada
+    posibleError = buscar_entrada(camino, &p_inodo_dir, &posInodoRaiz, &p_entrada, 0, 0);
 
     if (posibleError < 0) // Si hay un error lo enseñamos por pantalla
     {
@@ -329,10 +331,12 @@ int mi_dir(const char *camino, char *buffer)
         leer_inodo(posInodoRaiz, &inodo); // Leemos el inodo
         numEntradas = inodo.tamEnBytesLog / sizeof(struct entrada);
 
-        if (inodo.tipo != 'd') // Si no es un directorio, retornamos error
+        // agregamos esto
+        if (tipo != inodo.tipo) // Si no coinciden los tipos, es un error
         {
-            mostrar_error_buscar_entrada(ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO);
-            return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
+            // fprintf(stderr, "Tipo mi_ls = %c    Tipo mi_dir = %c", tipo, inodo.tipo);
+            fprintf(stderr, RED "Error: la sintaxis no concuerda con el tipo." RESET);
+            return FALLO;
         }
 
         if ((inodo.permisos & 4) != 4) // Comprobamos que el inodo tenga permisos de lectura
@@ -341,87 +345,259 @@ int mi_dir(const char *camino, char *buffer)
             return ERROR_PERMISO_LECTURA;
         }
 
-        for (int idx = 0; idx < numEntradas; idx++) // Recorremos todas las entradas
+        // Podéis hacer uso del dato *p_entrada que os ha devuelto buscar_entrada() y
+        // emplearlo en mi_read_f() para obtener el offset adecuado para leer directamente esa entrada y obtener el nombre del fichero
+
+        // Recorremos todas las entradas
+        if (flag == 0) // CASO SIN -l
         {
-            memset(entrada.nombre, 0, sizeof(entrada.nombre)); // Inicializamos el buffer de lectura poniendo zeros
+            // Si la ruta pasada corresponde a un fichero -> tan solo leemos este fichero
+            if (tipo == 'f')
+            {
+                memset(entrada.nombre, 0, sizeof(entrada.nombre)); // Inicializamos el buffer de lectura poniendo zeros
 
-            if (mi_read_f(posInodoRaiz, &entrada, idx * sizeof(struct entrada), sizeof(struct entrada)) == FALLO) // Leemos el fichero correspondiente
-            {
-                fprintf(stderr, RED "No ha podido leerse el fichero en mi_dir." RESET);
-                return FALLO;
-            }
+                if (mi_read_f(p_inodo_dir, &entrada, p_entrada, sizeof(struct entrada)) == FALLO) // Leemos el fichero correspondiente
+                {
+                    fprintf(stderr, RED "No ha podido leerse el fichero en mi_dir." RESET);
+                    return FALLO;
+                }
 
-            if (leer_inodo(entrada.ninodo, &inodo) == FALLO) // Leemos el inodo asociado a la entrada
-            {
-                fprintf(stderr, RED "No ha podido leerse el inodo en mi_dir." RESET);
-                return FALLO;
-            }
-
-            // Metemos el tipo
-            if (inodo.tipo == 'l')
-            {
-                strcat(buffer, "l\t");
-            }
-            else if (inodo.tipo == 'd')
-            {
-                strcat(buffer, "d\t");
-            }
-            else
-            {
-                strcat(buffer, "f\t");
+                // color azul claro
+                strcat(buffer, LBLUE);
+                strcat(buffer, entrada.nombre);
+                strcat(buffer, RESET);
+                strcat(buffer, "\t"); // Agregamos una tabulación entre cada entrada
+                // FICHEROS
+                return numEntradas;
             }
 
-            // Metemos los permisos//
+            // La ruta pasada corresponde a un directorio -> leemos todas sus entradas
+            for (int idx = 0; idx < numEntradas; idx++)
+            {
+                memset(entrada.nombre, 0, sizeof(entrada.nombre)); // Inicializamos el buffer de lectura poniendo zeros
 
-            // Permisos de lectura
-            if (inodo.permisos & 4)
-            {
-                strcat(buffer, "r");
-            }
-            else
-            {
-                strcat(buffer, "-");
-            }
-            // Permisos de escritura
-            if (inodo.permisos & 2)
-            {
-                strcat(buffer, "w");
-            }
-            else
-            {
-                strcat(buffer, "-");
-            }
-            // Permisos de ejecución
-            if (inodo.permisos & 1)
-            {
-                strcat(buffer, "x\t");
-            }
-            else
-            {
-                strcat(buffer, "-\t");
-            }
+                if (mi_read_f(posInodoRaiz, &entrada, idx * sizeof(struct entrada), sizeof(struct entrada)) == FALLO) // Leemos el fichero correspondiente
+                {
+                    fprintf(stderr, RED "No ha podido leerse el fichero en mi_dir." RESET);
+                    return FALLO;
+                }
 
-            // strcat(buffer, "");
+                if (leer_inodo(entrada.ninodo, &inodo) == FALLO) // Leemos el inodo asociado a la entrada
+                {
+                    fprintf(stderr, RED "No ha podido leerse el inodo en mi_dir." RESET);
+                    return FALLO;
+                }
 
-            // Metemos la fecha y hora
-            struct tm *tm;
-            tm = localtime(&inodo.mtime);
-            sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-            strcat(buffer, tmp);
-            strcat(buffer, "\t");
-
-            // Metemos el tamaño
-            char size_str[20];                                               // Espacio suficiente para almacenar el tamaño convertido a cadena
-            snprintf(size_str, sizeof(size_str), "%u", inodo.tamEnBytesLog); // Convertimos el tamaño a una cadena
-            strcat(buffer, size_str);                                        // Concatenamos la cadena al buffer
-            strcat(buffer, "\t");
-
-            // Metemos el nombre
-            strcat(buffer, "\t"); // Agregamos un separador entre los datos y el nombre
-            strcat(buffer, entrada.nombre);
-            strcat(buffer, "\n"); // Agregamos un salto de línea al final de cada entrada
+                if (inodo.tipo == 'd')
+                {
+                    // si es un direcotorio, color naranja
+                    //  Metemos el nombre
+                    strcat(buffer, ORANGE);
+                    strcat(buffer, entrada.nombre);
+                    strcat(buffer, RESET);
+                    strcat(buffer, "\t"); // Agregamos una tabulación entre cada entrada
+                }
+                else if (inodo.tipo == 'f')
+                {
+                    // color azul claro
+                    strcat(buffer, LBLUE);
+                    strcat(buffer, entrada.nombre);
+                    strcat(buffer, RESET);
+                    strcat(buffer, "\t"); // Agregamos una tabulación entre cada entrada
+                }
+                else
+                {
+                    // sin color
+                    strcat(buffer, entrada.nombre);
+                    strcat(buffer, "\t"); // Agregamos una tabulación entre cada entrada
+                }
+            }
+            return numEntradas;
         }
-        return numEntradas;
+
+        else if (flag == 1) // CASO -l
+        {
+
+            // Si la ruta pasada corresponde a un fichero -> tan solo leemos este fichero
+            if (tipo == 'f')
+            {
+                memset(entrada.nombre, 0, sizeof(entrada.nombre)); // Inicializamos el buffer de lectura poniendo zeros
+
+                if (mi_read_f(p_inodo_dir, &entrada, p_entrada, sizeof(struct entrada)) == FALLO) // Leemos el fichero correspondiente
+                {
+                    fprintf(stderr, RED "No ha podido leerse el fichero en mi_dir." RESET);
+                    return FALLO;
+                }
+
+                if (leer_inodo(entrada.ninodo, &inodo) == FALLO) // Leemos el inodo asociado a la entrada
+                {
+                    fprintf(stderr, RED "No ha podido leerse el inodo en mi_dir." RESET);
+                    return FALLO;
+                }
+
+                // metemos el tipo
+                strcat(buffer, "f\t");
+                // Metemos los permisos//
+                // Permisos de lectura
+                if (inodo.permisos & 4)
+                {
+                    strcat(buffer, "r");
+                }
+                else
+                {
+                    strcat(buffer, "-");
+                }
+                // Permisos de escritura
+                if (inodo.permisos & 2)
+                {
+                    strcat(buffer, "w");
+                }
+                else
+                {
+                    strcat(buffer, "-");
+                }
+                // Permisos de ejecución
+                if (inodo.permisos & 1)
+                {
+                    strcat(buffer, "x\t");
+                }
+                else
+                {
+                    strcat(buffer, "-\t");
+                }
+
+                // Metemos la fecha y hora
+                struct tm *tm;
+                tm = localtime(&inodo.mtime);
+                sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+                strcat(buffer, tmp);
+                strcat(buffer, "\t");
+
+                // Metemos el tamaño
+                char size_str[20];                                               // Espacio suficiente para almacenar el tamaño convertido a cadena
+                snprintf(size_str, sizeof(size_str), "%u", inodo.tamEnBytesLog); // Convertimos el tamaño a una cadena
+                strcat(buffer, size_str);                                        // Concatenamos la cadena al buffer
+                strcat(buffer, "\t");
+
+                // fichero = color azul claro
+                strcat(buffer, "\t"); // Agregamos un separador entre los datos y el nombre
+                strcat(buffer, LBLUE);
+                strcat(buffer, entrada.nombre);
+                strcat(buffer, RESET);
+                strcat(buffer, "\n"); // Agregamos un salto de línea al final de cada entrada
+
+                return numEntradas;
+            }
+
+            // La ruta corresponde a un directorio -> leemos todas sus entradas
+            for (int idx = 0; idx < numEntradas; idx++) // Recorremos todas las entradas
+            {
+                memset(entrada.nombre, 0, sizeof(entrada.nombre)); // Inicializamos el buffer de lectura poniendo zeros
+
+                if (mi_read_f(posInodoRaiz, &entrada, idx * sizeof(struct entrada), sizeof(struct entrada)) == FALLO) // Leemos el fichero correspondiente
+                {
+                    fprintf(stderr, RED "No ha podido leerse el fichero en mi_dir." RESET);
+                    return FALLO;
+                }
+
+                if (leer_inodo(entrada.ninodo, &inodo) == FALLO) // Leemos el inodo asociado a la entrada
+                {
+                    fprintf(stderr, RED "No ha podido leerse el inodo en mi_dir." RESET);
+                    return FALLO;
+                }
+
+                // Metemos el tipo
+                if (inodo.tipo == 'l')
+                {
+                    strcat(buffer, "l\t");
+                }
+                else if (inodo.tipo == 'd')
+                {
+                    strcat(buffer, "d\t");
+                }
+                else
+                {
+                    strcat(buffer, "f\t");
+                }
+
+                // Metemos los permisos//
+
+                // Permisos de lectura
+                if (inodo.permisos & 4)
+                {
+                    strcat(buffer, "r");
+                }
+                else
+                {
+                    strcat(buffer, "-");
+                }
+                // Permisos de escritura
+                if (inodo.permisos & 2)
+                {
+                    strcat(buffer, "w");
+                }
+                else
+                {
+                    strcat(buffer, "-");
+                }
+                // Permisos de ejecución
+                if (inodo.permisos & 1)
+                {
+                    strcat(buffer, "x\t");
+                }
+                else
+                {
+                    strcat(buffer, "-\t");
+                }
+
+                // Metemos la fecha y hora
+                struct tm *tm;
+                tm = localtime(&inodo.mtime);
+                sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+                strcat(buffer, tmp);
+                strcat(buffer, "\t");
+
+                // Metemos el tamaño
+                char size_str[20];                                               // Espacio suficiente para almacenar el tamaño convertido a cadena
+                snprintf(size_str, sizeof(size_str), "%u", inodo.tamEnBytesLog); // Convertimos el tamaño a una cadena
+                strcat(buffer, size_str);                                        // Concatenamos la cadena al buffer
+                strcat(buffer, "\t");
+
+                // Metemos el nombre
+                if (inodo.tipo == 'd')
+                {
+                    // si es un direcotorio, color naranja
+                    strcat(buffer, "\t"); // Agregamos un separador entre los datos y el nombre
+                    strcat(buffer, ORANGE);
+                    strcat(buffer, entrada.nombre);
+                    strcat(buffer, RESET);
+                    strcat(buffer, "\n"); // Agregamos un salto de línea al final de cada entrada
+                }
+                else if (inodo.tipo == 'f')
+                {
+                    // fichero = color azul claro
+                    strcat(buffer, "\t"); // Agregamos un separador entre los datos y el nombre
+                    strcat(buffer, LBLUE);
+                    strcat(buffer, entrada.nombre);
+                    strcat(buffer, RESET);
+                    strcat(buffer, "\n"); // Agregamos un salto de línea al final de cada entrada
+                }
+                else
+                {
+                    // libre = sin color
+                    strcat(buffer, "\t"); // Agregamos un separador entre los datos y el nombre
+                    strcat(buffer, entrada.nombre);
+                    strcat(buffer, "\n"); // Agregamos un salto de línea al final de cada entrada
+                }
+            }
+
+            return numEntradas;
+        }
+        else // Valor de extra incorrecto
+        {
+            fprintf(stderr, RED "Error al llamar a mi_dir, el bit extra debe ser 0|1." RESET);
+            return FALLO;
+        }
     }
 }
 
