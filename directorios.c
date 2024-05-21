@@ -45,49 +45,6 @@ void mostrar_error_buscar_entrada(int error)
  * final: resto del camino a partir del segundo '/' (inclusive)
  * tipo: d o f en función de si camino es un directorio o un fichero
  */
-/*
-int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
-{
-
-    if (camino == NULL || *camino != '/')
-    { // Comprobamos que el formato sea correcto
-        mostrar_error_buscar_entrada(ERROR_CAMINO_INCORRECTO);
-        return ERROR_CAMINO_INCORRECTO;
-    }
-
-    // Encontrar la primera '/' después de la primera posición
-    const char *segunda_barra = strchr(camino + 1, '/'); // Si no la encuentra, devuelve NULL
-
-    if (segunda_barra = NULL)
-    {
-        // Si no hay segunda '/', el camino solo contiene el nombre de un fichero
-        strcpy(inicial, camino + 1); // Copiar el nombre del fichero a *inicial
-        *tipo = 'f';
-
-        strcpy(final, ""); // No hay más partes del camino
-    }
-    else
-    {
-        // Si hay segunda '/', dividir el camino en *inicial y *final
-        strncpy(inicial, camino + 1, segunda_barra - (camino + 1)); // Copiar *inicial desde después de la primera barra
-
-        strcpy(final, segunda_barra); // Copiamos en *final desde la segunda barra (inclusive) hasta el \0
-
-        // Determinar si el nombre en inicial representa un directorio o un fichero
-        if (final[strlen(final) - 1] == '/')
-        {
-            *tipo = 'd'; // Directorio si el último carácter es '/'
-        }
-        else
-        {
-            *tipo = 'f'; // Sinó es un fichero
-        }
-    }
-
-    return EXITO; // Éxito
-}
-*/
-
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
 {
     // Verificar que el camino no sea nulo y que empiece con '/'
@@ -581,7 +538,6 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
  * offset: posición de lectura inicial con respecto al inodo en bytes lógicos
  * nbytes: nº de bytes a leer
  */
-
 int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes)
 {
     // Declaramos los punteros

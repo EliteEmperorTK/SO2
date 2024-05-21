@@ -60,8 +60,8 @@ int bumount()
 
 /**
  *   Escribe 1 bloque en el dispositivo virtual
- *   unsigned int nbloque: bloque físico a escribir
- *   const void *buf: contenido a escribir
+ *   nbloque: bloque físico a escribir
+ *   *buf: contenido a escribir
  */
 int bwrite(unsigned int nbloque, const void *buf)
 {
@@ -85,8 +85,8 @@ int bwrite(unsigned int nbloque, const void *buf)
 
 /**
  *   Lee 1 bloque del dispositivo virtual
- *   unsigned int nbloque: bloque físico a leer
- *   const void *buf: buffer para depositar lo leido
+ *   nbloque: bloque físico a leer
+ *   *buf: buffer para depositar lo leido
  */
 int bread(unsigned int nbloque, void *buf)
 {
