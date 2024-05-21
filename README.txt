@@ -5,6 +5,11 @@ Marc Nadal Saster Gondar
 
 
 En este documento explicaremos algunos aspectos a tener en cuenta sobre nuestro proyecto:
-La única mejora opcional que hemos realizado en este programa con respecto a los requisitos obligatorios ha sido que hemos implementado la función mi_ls -l, pero no hemos implementado ambos comandos (mi_ls y mi_ls -l),
-sinó que nuestro mi_ls ejecuta siempre las funcionalidades típicas de mi_ls -l ya que nos parece más razonable enseñar la información completa; además, mi_ls no funciona para ficheros.
-Otro aspecto a tener en cuenta es que no hemos implementado mi_touch, por lo tanto, cada llamada del script a mi_touch ha sido reemplazada con mi_mkdir.
+
+Las mejoras que hemos implementado en este proyecto son la implementación de mi_touch.c y mi_rm_dir.c.
+
+También hemos implementado mi_ls para obtener el nombre de las entradas y la posibilidad de obtener información extra con mi_ls -l. Además, hemos puesto colores para diferenciar entre ficheros y directorios; aunque no hemos implementado la función para obtener la información de los ficheros.
+
+También hemos creado el documento mi_rm_r.c para eliminar directorios que puedan no estar vacíos, y un script "scrip_rm_r.sh" para comprobar el correcto funcionamiento de esta función recursiva.
+
+Encontramos también la mejora que consiste en implementar caché de ficheros para las lecturas y escrituras. Eso sí, no hemos implementado las tablas FIFO ni las tablas LRU.
