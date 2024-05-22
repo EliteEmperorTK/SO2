@@ -1,8 +1,8 @@
 /* AUTORES:
-* Marc Nadal Sastre Gondar
-* Joaquín Esperon Solari
-* Martí Vich Gispert
-*/
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
 
 #include "directorios.h"
 
@@ -44,6 +44,38 @@ int main(int args, char **argv)
         }
     }
 
+    /*
+    // Mapear el superbloque en memoria
+    int fd = open("superbloque.dat", O_RDWR | O_CREAT, 0666);
+    if (fd == -1)
+    {
+        perror("Error abriendo/creando superbloque.dat");
+        bumount();
+        return FALLO;
+    }
+
+    // Asegurar el tamaño del archivo de respaldo
+    if (ftruncate(fd, BLOCKSIZE) == -1)
+    {
+        perror("Error en ftruncate");
+        close(fd);
+        bumount();
+        return FALLO;
+    }
+
+    // Mapear el archivo a memoria
+    SB = mmap(NULL, BLOCKSIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (SB == MAP_FAILED)
+    {
+        perror("Error en mmap");
+        close(fd);
+        bumount();
+        return FALLO;
+    }
+
+    close(fd);
+    */
+
     // Inicializar superbloque
     if (initSB(nbloques, nbloques / 4) == FALLO)
     {
@@ -69,18 +101,27 @@ int main(int args, char **argv)
     }
 
     // Crear el directorio raíz
-    if (reservar_inodo('d', 7) == FALLO)
-    {
-        fprintf(stderr, RED "Error al crear el directorio raíz.\n" RESET);
-        bumount();
-        return FALLO;
-    }
+    // if (reservar_inodo('d', 7) == FALLO)
+    //{
+    //    fprintf(stderr, RED "Error al crear el directorio raíz.\n" RESET);
+    //    bumount();
+    //    return FALLO;
+    //}
 
     if (bumount() == FALLO)
     {
         fprintf(stderr, RED "Error al desmontar el dispositivo virtual.\n" RESET);
         return FALLO;
     }
+
+    /*
+    // Desmapear el superbloque antes de salir
+    if (munmap(SB, BLOCKSIZE) == -1)
+    {
+        perror("Error en munmap");
+        return FALLO;
+    }
+    */
 
     // printf("Dispositivo virtual formateado correctamente.\n");
 

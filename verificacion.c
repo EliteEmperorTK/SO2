@@ -52,7 +52,7 @@ void escribir_info(int *infoPos, struct INFORMACION *info, const char *fic)
     *infoPos += mi_write(fic, aux1, *infoPos, strlen(aux1));
 }
 
-int main(int args, char const *argv[])
+int main(int args, char *argv[])
 {
     // Verificamos la sintaxis
     if (args != 3)

@@ -1,8 +1,8 @@
 /* AUTORES:
-* Marc Nadal Sastre Gondar
-* Joaquín Esperon Solari
-* Martí Vich Gispert
-*/
+ * Marc Nadal Sastre Gondar
+ * Joaquín Esperon Solari
+ * Martí Vich Gispert
+ */
 
 #include "bloques.h"
 #include <limits.h>
@@ -33,6 +33,8 @@ struct superbloque
     unsigned int totInodos;                              // Cantidad total de inodos (heurística)
     char padding[BLOCKSIZE - 12 * sizeof(unsigned int)]; // Relleno para ocupar el bloque completo
 };
+
+// extern struct superbloque *SB;
 
 #define INODOSIZE 128 // tamano en bytes de un inodo
 
@@ -88,5 +90,3 @@ int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned c
 
 int liberar_inodo(unsigned int ninodo);
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo);
-int liberar_directos(unsigned int *nBL, unsigned int ultimoBL, struct inodo *inodo, int *eof);
-int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsigned int ultimoBL, struct inodo *inodo, int nRangoBL, unsigned int nivel_punteros, unsigned int *ptr, int *eof);

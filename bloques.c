@@ -14,6 +14,9 @@ static sem_t *mutex;
 
 static unsigned int inside_sc = 0;
 
+// Variable global para el superbloque mapeado en memoria
+// struct superbloque *SB;
+
 /**
  *   Montar el dispositivo virtual
  *   const char *camino: nombre dispositivo virtual
@@ -38,6 +41,18 @@ int bmount(const char *camino)
         fprintf(stderr, RED "Error en bmount al abrir el fichero." RESET);
         return FALLO;
     }
+
+    /*
+    // Mapear el superbloque en memoria
+    SB = mmap(NULL, BLOCKSIZE, PROT_READ | PROT_WRITE, MAP_SHARED, descriptor, 0);
+    if (SB == MAP_FAILED)
+    {
+        perror("Error en mmap");
+        close(descriptor);
+        return FALLO;
+    }
+    */
+
     return descriptor;
 }
 
@@ -48,6 +63,15 @@ int bumount()
 {
     // Borramos el semáforo
     deleteSem();
+
+    /*
+    // Desmapear el superbloque de memoria
+    if (munmap(SB, BLOCKSIZE) == -1)
+    {
+        perror("Error en munmap");
+        return FALLO;
+    }
+    */
 
     if (close(descriptor) == FALLO)
     {
