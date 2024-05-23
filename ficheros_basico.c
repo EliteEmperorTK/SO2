@@ -813,7 +813,7 @@ int cantbwrite;
  * inodo: el inodo del cual vamos a borrar sus bloques
  */
 
-    int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
+int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
 {
     // Reestablecemos la cantidad de breads y bwrites que hemos hecho
     cantbread = 0;
@@ -847,10 +847,10 @@ int cantbwrite;
         liberados += liberar_indirectos_recursivo(&nBL, primerBL, ultimoBL, inodo, nRangoBL, nivel_punteros, &ptr, &eof);
     }
 
-    //printf(GRAY "liberados: %d\n", liberados);
+    // printf(GRAY "liberados: %d\n", liberados);
 
-    //printf(YELLOW "Cantidad de bread hechos = %d\n" RESET, cantbread);
-    //printf(YELLOW "Cantidad de bwrite hechos = %d\n" RESET, cantbwrite);
+    // printf(YELLOW "Cantidad de bread hechos = %d\n" RESET, cantbread);
+    // printf(YELLOW "Cantidad de bwrite hechos = %d\n" RESET, cantbwrite);
 
     return liberados;
 }
@@ -963,7 +963,7 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
             }
         }
         else
-        { //ptr=0
+        { // ptr=0
             // sólo entrará si es un puntero del inodo, resto de casos sólo se llama recursivamente con *ptr!=0
             switch (nRangoBL)
             { // Saltos al valer 0 un puntero del inodo según nivel

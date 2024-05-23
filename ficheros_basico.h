@@ -34,8 +34,6 @@ struct superbloque
     char padding[BLOCKSIZE - 12 * sizeof(unsigned int)]; // Relleno para ocupar el bloque completo
 };
 
-// extern struct superbloque *SB;
-
 #define INODOSIZE 128 // tamano en bytes de un inodo
 
 struct inodo

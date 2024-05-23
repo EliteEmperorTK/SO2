@@ -26,23 +26,6 @@ int main(int args, char **argv)
         fprintf(stderr, RED "Error al montar el dispositivo virtual.\n" RESET);
         return FALLO;
     }
-    /* MMAP()
-        // Mostrar los datos del superbloque mmap
-        printf("DATOS DEL SUPERBLOQUE\n");
-        printf("posPrimerBloqueMB = %d\n", SB->posPrimerBloqueMB);
-        printf("posUltimoBloqueMB = %d\n", SB->posUltimoBloqueMB);
-        printf("posPrimerBloqueAI = %d\n", SB->posPrimerBloqueAI);
-        printf("posUltimoBloqueAI = %d\n", SB->posUltimoBloqueAI);
-        printf("posPrimerBloqueDatos = %d\n", SB->posPrimerBloqueDatos);
-        printf("posUltimoBloqueDatos = %d\n", SB->posUltimoBloqueDatos);
-        printf("posInodoRaiz = %d\n", SB->posInodoRaiz);
-        printf("posPrimerInodoLibre = %d\n", SB->posPrimerInodoLibre);
-        printf("cantBloquesLibres = %d\n", SB->cantBloquesLibres);
-        printf("cantInodosLibres = %d\n", SB->cantInodosLibres);
-        printf("totBloques = %d\n", SB->totBloques);
-        printf("totInodos = %d\n", SB->totInodos);
-        printf("\n");
-    */
 
     // Leer el superbloque
     struct superbloque SB;
